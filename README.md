@@ -25,7 +25,7 @@ Requeriments:
     
   normal:
     
-    $ g++ -std=c++17 main.cpp -o Magnetar
+    $ g++ -std=c++17 -pthread main.cpp -o Magnetar
     $ ./Magnetar
 
 ```
