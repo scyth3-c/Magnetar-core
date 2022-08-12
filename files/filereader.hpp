@@ -5,7 +5,9 @@
 #include <string>
 #include <fstream>
 
-using std::string, std::make_shared, std::shared_ptr;
+using std::string;
+using std::make_shared;
+using std::shared_ptr;
 
 class Files_t
 {

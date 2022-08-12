@@ -1,11 +1,11 @@
 #ifndef MAGNETAR_HPP
 #define MAGNETAR_HPP
 
-#include "sockets.hpp"
-#include "sockets_utils.hpp"
-#include "routes.hpp"
-#include "request.hpp"
-#include "processing.hpp"
+#include "sockets/sockets.hpp"
+#include "utils/sockets_utils.hpp"
+#include "http/routes.hpp"
+#include "http/request.hpp"
+#include "utils/processing.hpp"
 
 #include <thread>
 #include <chrono>
@@ -16,8 +16,8 @@
 #include <vector>
 
 
-using std::string,
-    std::make_shared;
+using std::string;
+using std::make_shared;
 
 template <class T>
 class Magnetar

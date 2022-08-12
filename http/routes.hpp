@@ -7,10 +7,10 @@
 #include <initializer_list>
 #include <functional>
 #include "request.hpp"
-#include "filereader.hpp"
-#include "interpretado.hpp"
+#include "../files/filereader.hpp"
+#include "../files/interpretado.hpp"
 
-#include "json.hpp"
+#include "../json/json.hpp"
 
 using std::string;
 

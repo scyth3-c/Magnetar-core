@@ -19,7 +19,7 @@ constexpr const char* X_WWW_FORM = "application/x-www-form-urlencoded";
 constexpr const char* PLAIN_TEXT = "text/plain";
 
 #include <string>
-#include "request.hpp"
+#include "../http/request.hpp"
 using std::string;
 
 class HTTP_QUERY

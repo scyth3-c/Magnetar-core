@@ -5,7 +5,9 @@
 #include <vector>
 #include <initializer_list>
 
-using std::string, std::vector, std::initializer_list;
+using std::string;
+using std::vector;
+using std::initializer_list;
 
 
 

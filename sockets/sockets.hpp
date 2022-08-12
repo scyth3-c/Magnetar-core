@@ -12,11 +12,11 @@
 #include <string.h>
 
 
-#include "sockets_utils.hpp"
+#include "../utils/sockets_utils.hpp"
 
-using std::string,
-    std::shared_ptr,
-    std::make_shared;
+using std::string;
+using std::shared_ptr;
+using std::make_shared;
 
 class sonar_socket
 {
