@@ -11,11 +11,15 @@ using std::vector;
 
 constexpr const char* NOT_PARAMS = "___s";
 
-class Request
-{
+
+class Request {
+
+
 private:
   string route{};
   vector<std::pair<string, string>> _parameters;
+
+
 
 public:
   Request() {}
@@ -38,8 +42,10 @@ public:
   }
 
   void setRawParametersData(string _raw_data);
-  void showParams();
+
 };
+
+
 
 void Request::setRawParametersData(string _raw)
 {
@@ -65,7 +71,7 @@ void Request::setRawParametersData(string _raw)
     _parameters.push_back(temp_pair);
   }
 
-};
+}
 
 
 
