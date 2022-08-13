@@ -4,7 +4,8 @@
 #include <vector>
 #include <string>
 
-using std::string, std::vector;
+using std::string;
+using std::vector;
 
 class param_box{
     private:

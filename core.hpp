@@ -20,8 +20,7 @@ using std::string;
 using std::make_shared;
 
 template <class T>
-class Magnetar
-{
+class Magnetar {
 private:
 
     std::shared_ptr<T>           control = nullptr;
@@ -156,13 +155,11 @@ int Magnetar<T>::purge(string _xRoute, _callbacks _funcs){
 
 
 template <class T>
-void Magnetar<T>::listen()
-{
+void Magnetar<T>::listen() {
 
-    auto listen_loop = [&]() -> void
-    {
-        while (1)
-        {
+    auto listen_loop = [&]() -> void {
+        while (1) {
+            
             auto _process = [&]() -> void {
 
             bool cantget = true;
@@ -177,7 +174,8 @@ void Magnetar<T>::listen()
             
             string send_target{};
 
-            string trait = (string)control->getResponse();
+            string trait(control->getResponse());
+
             std::pair<string,string> actual_route = qProcess->route_refactor(trait);
             std::vector<listen_routes> sesion_routes = routes; // generate COPY  NOT MOVE X
 
@@ -250,21 +248,19 @@ string Magnetar<T>::oneTrigger(string data, int _port, int flag)
     if (_port)
         setPort(_port);
     string response{};
-    try
-    {
+    try {
         control = make_shared<T>(PORT);
         if (!control->create(_domain, type, protocol))
             throw "error al crear";
         control->setSesions(sesions);
-        if (!control->on(PORT))
+        if (!control->on())
             throw "error al lanzar";
         control->send_data(local_response, flag);
         response = control->getResponse();
         control->close();
         control.reset();
     }
-    catch (const std::exception &e)
-    {
+    catch (const std::exception &e) {
         std::cerr << e.what() << '\n';
         return "error";
     }
@@ -288,6 +284,8 @@ void Magnetar<T>::listenSesions()
     _sender.join();
 }
 
+
+typedef Magnetar<Server> mgServer;
 
 
 #endif // !Magnetar_HPP

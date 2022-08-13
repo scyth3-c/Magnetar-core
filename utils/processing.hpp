@@ -18,8 +18,11 @@ constexpr const char* PURGE_TYPE = "PURGE";
 constexpr const char* X_WWW_FORM = "application/x-www-form-urlencoded";
 constexpr const char* PLAIN_TEXT = "text/plain";
 
+#include <memory>
 #include <string>
 #include "../http/request.hpp"
+
+
 using std::string;
 
 class HTTP_QUERY
@@ -117,33 +120,34 @@ std::pair<string, string> HTTP_QUERY::route_refactor(string &target)
     return route;
 }
 
-string HTTP_QUERY::findContenType(string &target)
-{
+string HTTP_QUERY::findContenType(string &target) {
+
     string contet{};
     int map{0};
-    for (size_t general = 0; general <= target.length(); general++)
-    {
+
+
+    for (size_t general = 0; general <= target.length(); general++) {
         string chunk{};
-        for (size_t i = general; i < general + 13; i++)
-        {
+        for (size_t i = general; i < general + 13; i++) {
             chunk += target[i];
         }
-        if (chunk == "Content-Type:")
-        {
+        if (chunk == "Content-Type:") {
             map = general;
             break;
         }
     }
-    for (size_t i = map + 14; i <= target.length(); i++)
-    {
-        if (target[i] == ' ' || target[i] == char(13))
+
+
+    for (size_t i = map + 14; i <= target.length(); i++) {
+        if (target[i] == char(32) || target[i] == char(13))
             break;
         contet += target[i];
     }
+
+
      fflush(stdin);
     return contet;
 }
-
 
 
 string HTTP_QUERY::get_params(string &target, bool &init)

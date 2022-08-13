@@ -10,7 +10,9 @@
 #include <chrono>
 #include <random>
 
-using std::string, std::make_shared, std::shared_ptr;
+using std::string;
+using std::make_shared;
+using std::shared_ptr;
 
 class Interpretado
 {
@@ -70,7 +72,7 @@ public:
         std::uniform_int_distribution<std::mt19937::result_type> dist;
 
         nombre = std::to_string(dist(gen));
-        ruta = "./magnetar/work_space/temp_" + nombre;
+        ruta = "./work_space/temp_" + nombre;
 
         writter = make_shared<std::ofstream>();
         writter->open((ruta + ".cpp").c_str());

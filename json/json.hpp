@@ -22,8 +22,6 @@ struct JSON_t {
         char puntos = char(58);
         char coma_simple = char(44);
 
-        bool anidado = false;
-
         for (size_t i = 0; i < body.size(); i+=2)
         {
             response +=  comilla + body[i] + comilla;
