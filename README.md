@@ -2,9 +2,9 @@
 Magnetar core, visit [scyth3-c/Magnetar](https://github.com/scyth3-c/Magnetar) for doc and dinamic examples!
 
 Requeriments:
-| system          | compiler            |     ram     |
-| :---            |     :---:           |        ---: |
-| linux           |  g++                |   195 KB    |
+| system          | compiler            |     extra          |
+| :---            |     :---:           |        ---:        |
+| linux           |  g++                |   -pthread flag    |
 
 
 ## Latest changes
