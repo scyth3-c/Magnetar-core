@@ -7,8 +7,10 @@
 #include <initializer_list>
 #include <functional>
 #include "request.hpp"
-#include "../files/filereader.hpp"
-#include "../files/interpretado.hpp"
+
+#include "../files/basic_reader.hpp"
+#include "../files/cpp_reader.hpp"
+#include "../files/mg_reader.hpp"
 
 #include "../json/json.hpp"
 
@@ -62,6 +64,7 @@ class Query
     void    send(string, std::function<void()> opcional=[]()->void{}) noexcept;
     void    readFile(string,string, std::function<void()> opcional=[]()->void{}) noexcept;
     void    readFileX(string,string, std::function<void()> opcional=[]()->void{}) noexcept;
+    void    compose(string,int, std::function<void()> opcional=[]()->void{}) noexcept;
 
     // PARAMS:  CONTEN  STATUS OPTIONAL CALLBACK
      void    json(string, int, std::function<void()> opcional=[]()->void{}) noexcept;
@@ -104,19 +107,30 @@ void  Query::send(string _txt, int status,  std::function<void()> callback) noex
      callback();
 }
 
+
 void  Query::readFile(string path,string type, std::function<void()> callback) noexcept {
-    Files_t temp;
-    string body = temp.extract(path);
+
+    BasicRead reader;
+    string body = reader.processing(path);
     last = utility_t::prepare_basic(body, type, headers);
-    temp.~Files_t();
+    reader.~BasicRead();
     callback();
 }
 
 void  Query::readFileX(string path,string type, std::function<void()> callback) noexcept {
-    Interpretado temp;
-    string body = temp.extract(path);
+    CppReader reader;
+    string body = reader.processing(path);
     last = utility_t::prepare_basic(body, type, headers);
-    temp.~Interpretado();
+    reader.~CppReader();
+    callback();
+}
+
+void  Query::compose(string path, int reserve, std::function<void()> callback) noexcept {
+    
+    MgReader reader;
+    string body = reader.processing(path, reserve);
+    last = utility_t::prepare_basic(body, "text/html" , headers);
+    reader.~MgReader();
     callback();
 }
 

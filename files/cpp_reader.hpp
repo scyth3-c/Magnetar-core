@@ -1,5 +1,5 @@
-#ifndef INTERPRETADO_HPP
-#define INTERPRETADO_HPP
+#ifndef CPPREADER_HPP
+#define CPPREADER_HPP
 
 #include <memory>
 #include <string>
@@ -14,16 +14,28 @@ using std::string;
 using std::make_shared;
 using std::shared_ptr;
 
-class Interpretado
-{
+constexpr const char* BASE = "#include <iostream> \n int main() { \n ";
+constexpr const char* WORK_PATH = "./work_space/temp_";
+constexpr char CODE_LOCATE = '#';
+
+constexpr const char* _GPP_  = "g++ ";
+constexpr const char* _CPP_  = ".cpp";
+constexpr const char* _TXX_  = ".txt";
+constexpr const char* _OUT   = " -o ";
+constexpr const char* _AFTER = " && ./";
+constexpr const char* _DATA  = " > ";
+constexpr const char* _CODE_END = "\n return 0;\n}";
+
+class CppReader {
+    
 private:
     shared_ptr<std::ifstream> reader = nullptr;
     shared_ptr<std::ofstream> writter = nullptr;
 
 public:
-    Interpretado() {}
-    string extract(string path)
-    {
+    CppReader() {}
+
+    string processing(string path) {
 
         string nombre,
             chunk,
@@ -35,7 +47,7 @@ public:
 
         bool init = false;
         std::pair<int, int> coords;
-        code = {"#include <iostream> \n int main() { \n "};
+        code = {BASE};
 
         reader = make_shared<std::ifstream>(path);
         while (getline(*reader, chunk))
@@ -48,7 +60,7 @@ public:
         {
             if (init)
             {
-                if (body[iterator] == '#')
+                if (body[iterator] == CODE_LOCATE)
                 {
                     coords.second = iterator;
                     break;
@@ -59,7 +71,7 @@ public:
                 }
             }
 
-            if (body[iterator] == '#' && !init)
+            if (body[iterator] == CODE_LOCATE && !init)
             {
                 coords.first = iterator;
                 init = true;
@@ -72,24 +84,33 @@ public:
         std::uniform_int_distribution<std::mt19937::result_type> dist;
 
         nombre = std::to_string(dist(gen));
-        ruta = "./work_space/temp_" + nombre;
+        ruta = WORK_PATH + nombre;
 
         writter = make_shared<std::ofstream>();
-        writter->open((ruta + ".cpp").c_str());
+        writter->open((ruta + _CPP_).c_str());
 
         for (auto &it : code)
         {
             *writter << it;
         }
 
-        *writter << "\n return 0;\n}";
+        *writter << _CODE_END;
         writter->close();
         writter.reset();
 
-        command = "g++ " + ruta + ".cpp -o " + ruta + " && ./" + ruta + " > " + ruta + ".txt";
+        command = _GPP_  + 
+                  ruta   + 
+                  _CPP_  + 
+                  _OUT   +
+                  ruta   + 
+                  _AFTER +
+                   ruta  + 
+                   _DATA + 
+                   ruta  + 
+                   _TXX_;
 
         system(command.c_str());
-        reader->open(ruta + ".txt");
+        reader->open(ruta + _TXX_);
         chunk = " ";
 
         while (getline(*reader, chunk))
@@ -106,13 +127,13 @@ public:
         }
 
         std::filesystem::remove(ruta);
-        std::filesystem::remove(ruta + ".cpp");
-        std::filesystem::remove(ruta + ".txt");
+        std::filesystem::remove(ruta + _CPP_);
+        std::filesystem::remove(ruta + _TXX_);
         body.insert(coords.first, compile_container);
 
         return body;
     }
-    ~Interpretado() {}
+    ~CppReader() {}
 };
 
-#endif // ! INTERPRETADO_HPP
+#endif // ! CPPREADER_HPP

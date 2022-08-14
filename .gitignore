@@ -1,5 +1,6 @@
 test-main.cpp
 test-make
 test-build/
-test-binary
+binary
 test-bin/
+Makefile-test
