@@ -1,5 +1,5 @@
-#ifndef FILEREADER_HPP
-#define FILEREADER_HPP
+#ifndef BASICREADER_HPP
+#define BASICREADER_HPP
 
 #include <memory>
 #include <string>
@@ -9,13 +9,14 @@ using std::string;
 using std::make_shared;
 using std::shared_ptr;
 
-class Files_t
-{
+class BasicRead {
 private:
     shared_ptr<std::ifstream> reader = nullptr;
 public:
-    Files_t() { }
-    string extract(string path) {
+    BasicRead() { }
+
+    string processing(string path) {
+
         reader = make_shared<std::ifstream>();
         reader->open(path);
         string chunk{""};
@@ -26,7 +27,7 @@ public:
         reader.reset();
         return body;
     }
-    ~Files_t(){}
+    ~BasicRead(){}
 };
 
-#endif // !FILEREADER_HPP
+#endif // !BASICREADER_HPP
