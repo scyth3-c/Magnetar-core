@@ -17,6 +17,10 @@ struct notify_html {
         return "Magnetar dice: error de sintaxis no cerro ];  <br/> Magnetar says: sintax error whiout closing the tag with ];  ";
       }
 
+     inline static std::string noSafeData() noexcept {
+        return "Magnetar dice: error de sintaxis no cerro ]]  <br/> Magnetar says: sintax error whiout closing the tag with ]]  ";
+      }
+
       
 
 };

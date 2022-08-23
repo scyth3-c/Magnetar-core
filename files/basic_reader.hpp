@@ -1,5 +1,5 @@
-#ifndef BASICREADER_HPP
-#define BASICREADER_HPP
+#ifndef BASIC_READER_HPP
+#define BASIC_READER_HPP
 
 #include <memory>
 #include <string>
@@ -30,4 +30,4 @@ public:
     ~BasicRead(){}
 };
 
-#endif // !BASICREADER_HPP
+#endif // !BASIC_READER_HPP

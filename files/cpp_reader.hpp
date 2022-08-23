@@ -1,5 +1,5 @@
-#ifndef CPPREADER_HPP
-#define CPPREADER_HPP
+#ifndef CPP_READER_HPP
+#define CPP_READER_HPP
 
 #include <memory>
 #include <string>
@@ -10,21 +10,12 @@
 #include <chrono>
 #include <random>
 
+#include "local_utility.hpp"
+
 using std::string;
 using std::make_shared;
 using std::shared_ptr;
 
-constexpr const char* BASE = "#include <iostream> \n int main() { \n ";
-constexpr const char* WORK_PATH = "./work_space/temp_";
-constexpr char CODE_LOCATE = '#';
-
-constexpr const char* _GPP_  = "g++ ";
-constexpr const char* _CPP_  = ".cpp";
-constexpr const char* _TXX_  = ".txt";
-constexpr const char* _OUT   = " -o ";
-constexpr const char* _AFTER = " && ./";
-constexpr const char* _DATA  = " > ";
-constexpr const char* _CODE_END = "\n return 0;\n}";
 
 class CppReader {
     
@@ -136,4 +127,4 @@ public:
     ~CppReader() {}
 };
 
-#endif // ! CPPREADER_HPP
+#endif // ! CPP_READER_HPP

@@ -11,6 +11,7 @@
 #include "../files/basic_reader.hpp"
 #include "../files/cpp_reader.hpp"
 #include "../files/mg_reader.hpp"
+#include "../files/data_render.hpp"
 
 #include "../json/json.hpp"
 
@@ -33,10 +34,10 @@ struct Headers_t {
 typedef Headers_t<string> HEADERS;
 
 
-class Query
-{
-   private:
+class Query {
 
+   private:
+   
     bool nexteable  { false};
     string response {"default"};
     string last     {};
@@ -65,6 +66,7 @@ class Query
     void    readFile(string,string, std::function<void()> opcional=[]()->void{}) noexcept;
     void    readFileX(string,string, std::function<void()> opcional=[]()->void{}) noexcept;
     void    compose(string,int, std::function<void()> opcional=[]()->void{}) noexcept;
+    void    render(string, std::function<dataRender(dataRender&)> opcional=[](dataRender&)->dataRender{}) noexcept;
 
     // PARAMS:  CONTEN  STATUS OPTIONAL CALLBACK
      void    json(string, int, std::function<void()> opcional=[]()->void{}) noexcept;
@@ -133,6 +135,16 @@ void  Query::compose(string path, int reserve, std::function<void()> callback) n
     reader.~MgReader();
     callback();
 }
+
+void  Query::render(string path, std::function<dataRender(dataRender& data)> callback) noexcept {
+
+std::unique_ptr<dataRender> tasty_temp = std::make_unique<dataRender>(callback);
+string body = tasty_temp->render(path);
+last = utility_t::prepare_basic(body, "text/html", headers);
+tasty_temp.reset();
+
+}
+
 
 
 void Query::setHeaders(string body) noexcept {
