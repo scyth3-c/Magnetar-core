@@ -9,7 +9,7 @@ struct notify_html {
         return "Magnetar dice: error no se puedo encontrar la ruta! <br/> Magnetar says: error cant get the path! ";
       }
 
-      inline static std::string noFIle(string name) noexcept {
+      inline static std::string noFIle(std::string name) noexcept {
         return "Magnetar dice: error no se puedo encontrar el archivo " + name + " <br/> Magnetar says: error cant get the file  " + name;
       }
 
