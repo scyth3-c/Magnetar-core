@@ -11,30 +11,29 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 #include "../utils/sockets_utils.hpp"
 
-using std::string;
-using std::shared_ptr;
 using std::make_shared;
+using std::shared_ptr;
+using std::string;
 
-
-class sonar_socket {
+class sonar_socket
+{
 
 public:
-    explicit sonar_socket(uint16_t _port = 0){
+    explicit sonar_socket(uint16_t _port = 0)
+    {
         if (_port != 0)
             PORT = make_shared<uint16_t>(_port);
     }
     int create(int _domain = AF_INET, int type = SOCK_STREAM, int protocol = 0);
-    inline void setPort(int _port) {
+    inline void setPort(int _port)
+    {
         PORT.reset();
         PORT = make_shared<uint16_t>(_port);
     }
     inline void close() { shutdown(socket_id, SHUT_RDWR); }
     inline void setBuffer(int _max) noexcept { buffer_size = _max; }
-
-
 
 protected:
     struct sockaddr_in address;
@@ -44,36 +43,28 @@ protected:
         state_receptor{},
         option_name{1},
         address_lenght{sizeof(address)};
-    int buffer_size{2048};
-
-    
+    int buffer_size{5000};
 };
 
-
-
-
-
-
-class Server : public sonar_socket {
+class Server : public sonar_socket
+{
 
 private:
     int sesions{1};
     string data;
-
 
 public:
     Server() {}
     Server(uint16_t _port) : sonar_socket(_port) {}
 
     int on();
-    char* getResponse();
+    char *getResponse();
     void send_data(string conten, int flags = 0);
     inline void setSesions(int _max) { sesions = _max; }
-
 };
 
-
-int sonar_socket::create(int _domain, int type, int protocol) {
+int sonar_socket::create(int _domain, int type, int protocol)
+{
 
     int res = socket_id = socket(_domain, type, protocol);
     if (res == 0)
@@ -82,20 +73,16 @@ int sonar_socket::create(int _domain, int type, int protocol) {
         return -1;
     }
     return SONAR_OK;
-
 }
 
-
-
-
-
-int Server::on() {   
+int Server::on()
+{
 
     int socket_see{}, seer_bind{}, seer_listen{}, seer_new{};
 
-      socket_see = setsockopt(socket_id, SOL_SOCKET,
-                                SO_REUSEADDR | SO_REUSEPORT, &option_name,
-                                sizeof(option_name));
+    socket_see = setsockopt(socket_id, SOL_SOCKET,
+                            SO_REUSEADDR | SO_REUSEPORT, &option_name,
+                            sizeof(option_name));
     if (socket_see)
         return socketError(-1);
 
@@ -103,43 +90,35 @@ int Server::on() {
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(*PORT);
 
-seer_bind = bind(socket_id, (struct sockaddr *)&address, sizeof(address));
+    seer_bind = bind(socket_id, (struct sockaddr *)&address, sizeof(address));
     if (seer_bind < 0)
         return socketError(-2);
 
-listen(socket_id, sesions);
-    if (seer_listen < 0)
-        return socketError(-3);
- new_socket = accept(socket_id, (struct sockaddr *)&address, (socklen_t *)&address_lenght);
-    if (seer_new < 0)
-        return socketError(-4);
+    listen(socket_id, sesions);
+    new_socket = accept(socket_id, (struct sockaddr *)&address, (socklen_t *)&address_lenght);
     return SONAR_OK;
-
 }
 
-
-
-
-char* Server::getResponse() {   
+char *Server::getResponse()
+{
 
     char *buffer = new char[buffer_size];
     state_receptor = read(new_socket, buffer, buffer_size);
     return buffer;
 }
 
+void Server::send_data(string _msg, int flags)
+{
 
-
-void Server::send_data(string _msg, int flags){
-    
     auto conten = (char *)_msg.c_str();
-    try {
+    try
+    {
         send(new_socket, conten, _msg.size(), flags);
     }
-    catch (const std::exception &e) {
+    catch (const std::exception &e)
+    {
         std::cerr << e.what() << '\n';
     }
 }
-
-
 
 #endif // !SOCKETS
