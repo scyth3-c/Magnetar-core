@@ -6,7 +6,7 @@ SOURCE_DIR := .
 DIR_OBJ := .
 COMPILER := g++
 
-FLAGS = -std=c++17 - -pthread
+FLAGS = -std=c++17  -pthread
 OBJ := $(SOURCES:.cpp=.o)
 DEPS := $(SOURCES:.cpp=.d)
 

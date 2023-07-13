@@ -46,7 +46,6 @@ private:
     Send_t<T> *Send_maestro = nullptr;
     pMain_t<T> *Main_maestro = nullptr;
 
-
     std::vector<std::shared_ptr<T>> worker_one;
     std::vector<std::tuple<std::shared_ptr<T>, string>> worker_send;
     std::vector<listen_routes> routes;
@@ -81,7 +80,7 @@ public:
     [[maybe_unused]] int purge(string, _callbacks);
     
     int setPort(uint16_t) noexcept;
-    inline uint16_t getPort() const noexcept{return PORT;};
+    [[nodiscard]] inline uint16_t getPort() const noexcept{return PORT;};
     void listen();
 
 };
@@ -162,13 +161,13 @@ template <class T>
 template <class T>
 void Neody<T>::listen() {
 
-    auto main = Main_maestro->getMainProcess(PORT);
+    auto Main = Main_maestro->getMainProcess(PORT, qProcess);
     auto worker = Worker_maestro->getWorker(macaco, victor, victoria);
     auto Sender = Send_maestro->getSendProcess(victor);
 
     std::thread _worker(worker);
     std::thread _response(Sender);
-    std::thread _main(main);
+    std::thread _main(Main);
 
     _main.join();
     _response.join();
