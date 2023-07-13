@@ -18,13 +18,13 @@ namespace workers {
     template<class T>
     class pMain_t {
     private:
-         std::shared_ptr<T> connection = nullptr;
+         std::shared_ptr<T> &connection = nullptr;
          unsigned short int next_register{};
          std::condition_variable &condition;
          std::vector<std::shared_ptr<T>> &worker;
          std::mutex &macaco;
 
-         inline void add_queue(std::shared_ptr<T> &base) {
+        inline void add_queue(std::shared_ptr<T> &base) {
             switch (next_register) {
                 case 0:
                     worker.push_back(base);
@@ -36,9 +36,10 @@ namespace workers {
             }
         }
 
+
     public:
 
-        explicit pMain_t(std::shared_ptr<T> conn, std::condition_variable &con,  std::vector<std::shared_ptr<T>> &_worker, std::mutex& _macaco) :
+        explicit pMain_t(std::shared_ptr<T> &conn, std::condition_variable &con,  std::vector<std::shared_ptr<T>> &_worker, std::mutex& _macaco) :
         connection(conn),
         condition(con),
         worker(_worker),
@@ -47,23 +48,26 @@ namespace workers {
              next_register = enums::neo::eSize::DEF_REG;
         }
 
-        inline  auto getMainProcess(uint16_t const &PORT){
+        inline  auto getMainProcess(uint16_t const &PORT, std::shared_ptr<HTTP_QUERY> &qProcess){
             return [&]()->void {
-
-                while (enums::neo::eStatus::START){
+                while (true){
                     try {
 
-                        connection->create();
+                        qProcess = make_shared<HTTP_QUERY>();
+                        connection = make_shared<T>();
+
+                        if (!connection->create()) {
+                            std::range_error("error al crear");
+                        }
+
                         connection->setBuffer(BUFFER);
                         connection->setPort(PORT);
                         connection->setSessions(SESSION);
 
-                        if(!connection->on()) {
-                            throw std::range_error("Error al escuchar el puerto");
+                        if (!connection->on()){
+                            std::range_error("error al lanzar");
                         }
-
                         add_queue(connection);
-
                     }
                     catch(const std::exception& e) {
                         std::cerr << e.what() << '\n';
