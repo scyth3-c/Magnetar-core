@@ -54,19 +54,13 @@ namespace workers {
                     try {
 
                         qProcess = make_shared<HTTP_QUERY>();
-                        connection = make_shared<T>();
 
-                        if (!connection->create()) {
+                        if (!connection->create())
                             std::range_error("error al crear");
-                        }
 
-                        connection->setBuffer(BUFFER);
-                        connection->setPort(PORT);
-                        connection->setSessions(SESSION);
-
-                        if (!connection->on()){
+                        if (!connection->on())
                             std::range_error("error al lanzar");
-                        }
+
                         add_queue(connection);
                     }
                     catch(const std::exception& e) {

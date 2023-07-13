@@ -50,7 +50,7 @@ private:
     std::vector<std::tuple<std::shared_ptr<T>, string>> worker_send;
     std::vector<listen_routes> routes;
 
-    std::shared_ptr<T> control;
+    std::shared_ptr<T> tcpControl;
     std::shared_ptr<HTTP_QUERY> qProcess = nullptr;
 
     std::mutex victoria;
@@ -62,6 +62,8 @@ private:
     std::condition_variable condition_access;
 
     uint16_t PORT{enums::neo::eSize::DEF_PORT};
+
+    void tcpInt();
 
 public:
     [[maybe_unused]] explicit Neody(uint16_t port);
@@ -88,20 +90,12 @@ public:
 template <class T>
 [[maybe_unused]] Neody<T>::Neody(uint16_t port) {
     if (port >= enums::neo::eSize::MIN_PORT) { PORT = port; }
-
-    Main_maestro = new pMain_t(control, condition_one, worker_one, macaco);
-    Worker_maestro = new Worker_t(worker_one, qProcess, condition_one, worker_send, condition_response, routes);
-    Send_maestro = new Send_t(worker_send, condition_response);
-
+    tcpInt();
 }
 
 template <class T>
 Neody<T>::Neody() {
-
-     Main_maestro = new pMain_t(control, condition_one, worker_one, macaco);
-     Worker_maestro = new Worker_t(worker_one, qProcess, condition_one, worker_send, condition_response, routes);
-     Send_maestro = new Send_t(worker_send, condition_response);
-
+    tcpInt();
 }
 
 template <class T>
@@ -186,6 +180,18 @@ int Neody<T>::setPort(uint16_t _port) noexcept {
     return enums::neo::eReturn::OK;
 }
 
+template<class T>
+void Neody<T>::tcpInt() {
+
+    Main_maestro = new pMain_t(tcpControl, condition_one, worker_one, macaco);
+    Worker_maestro = new Worker_t(worker_one, qProcess, condition_one, worker_send, condition_response, routes);
+    Send_maestro = new Send_t(worker_send, condition_response);
+
+    tcpControl = make_shared<T>();
+    tcpControl->setBuffer(BUFFER);
+    tcpControl->setPort(PORT);
+    tcpControl->setSessions(SESSION);
+}
 
 typedef Neody<Server> Router;
 
