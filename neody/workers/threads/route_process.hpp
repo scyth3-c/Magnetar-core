@@ -9,8 +9,8 @@
 #include <chrono>
 #include <atomic>
 #include <condition_variable>
-#include "../HTTP/routes/routes.hpp"
-#include "../utils/enums.h"
+#include "../../HTTP/routes/routes.hpp"
+#include "../../utils/enums.h"
 
 using std::string;
 

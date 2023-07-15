@@ -13,7 +13,7 @@ int Engine::create() {
                   socket(DOMAIN, TYPE, PROTOCOL))) < 0) {
                throw std::range_error("Fallo al crear el socket");
           }
-          return MG_OK;
+          return *socket_id;
      }
      catch (const std::exception &e) {
           std::cerr << e.what() << '\n';
@@ -142,7 +142,7 @@ void Server::setSessions(int max) {
                return;
           }
           static_sessions.reset(new int(max));
-          if(*static_sessions != max) throw("error al asignar las sesiones");
+          if(*static_sessions != max) throw std::range_error("error al asignar las sesiones");
      }
      catch (const std::exception &e) {
           std::cerr << e.what() << '\n';
@@ -151,6 +151,7 @@ void Server::setSessions(int max) {
 
 int Server::on(function<void(string*)>optional) {
      try {
+          lock_guard.lock();
           if (setsockopt(*socket_id,
                          SOL_SOCKET,
                          SO_REUSEADDR |
@@ -177,7 +178,7 @@ int Server::on(function<void(string*)>optional) {
           }
                getResponseProcessing();
           optional(buffereOd_data.get());
-
+          lock_guard.unlock();
           return MG_OK;
      }
      catch (const std::exception &e) {
