@@ -44,8 +44,9 @@ constexpr int UnCATCH_ERROR_CH = -66;
 class Engine {
 
    protected:
-         
-        struct sockaddr_in address;
+
+        std::mutex lock_guard;
+        struct sockaddr_in address{};
         shared_ptr<uint16_t> PORT = nullptr;
         shared_ptr 
                    <int> 
@@ -69,8 +70,6 @@ class Engine {
              getHeapLimit(),
              setPort(uint16_t),
              getPort();
-
-    [[maybe_unused]]  void* _cache;
         
         virtual void getResponseProcessing() = 0;
         virtual int on(function<void(string*)>optional = [](string*)->void{}) = 0;

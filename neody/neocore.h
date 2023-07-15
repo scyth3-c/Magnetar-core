@@ -8,13 +8,11 @@
 #include "HTTP/request/request.hpp"
 
 #include "processing/parameters/parameter_proccess.h"
-#include "workers/route_process.hpp"
-#include "workers/send_process.h"
-#include "workers/main_process.h"
 
 #include "utils/enums.h"
 #include "utils/sysprocess.h"
 
+#include "workers/worker_core.h"
 
 #include <thread>
 #include <chrono>
@@ -33,18 +31,14 @@
 using std::make_shared;
 using std::string;
 
-using workers::Worker_t;
-using workers::Send_t;
-using workers::pMain_t;
-
+using workers::eWorkers;
 
 template <class T>
 class Neody {
 private:
 
-    Worker_t<T> *Worker_maestro = nullptr;
-    Send_t<T> *Send_maestro = nullptr;
-    pMain_t<T> *Main_maestro = nullptr;
+    // Control de instancias paralos workers
+    eWorkers<T> *wInstances = nullptr;
 
     std::vector<std::shared_ptr<T>> worker_one;
     std::vector<std::tuple<std::shared_ptr<T>, string>> worker_send;
@@ -68,6 +62,7 @@ private:
 public:
     [[maybe_unused]] explicit Neody(uint16_t port);
     explicit Neody();
+    ~Neody(){ delete wInstances; }
 
     int http_response(string, _callbacks, string optional);
     [[maybe_unused]] int get(string, _callbacks);
@@ -155,13 +150,9 @@ template <class T>
 template <class T>
 void Neody<T>::listen() {
 
-    auto Main = Main_maestro->getMainProcess(PORT, qProcess);
-    auto worker = Worker_maestro->getWorker(macaco, victor, victoria);
-    auto Sender = Send_maestro->getSendProcess(victor);
-
-    std::thread _worker(worker);
-    std::thread _response(Sender);
-    std::thread _main(Main);
+    std::thread _main(wInstances->Main->getMainProcess(PORT, qProcess));
+    std::thread _response(wInstances->Send->getSendProcess(victor));
+    std::thread _worker(wInstances->Worker->getWorker(macaco, victor, victoria));
 
     _main.join();
     _response.join();
@@ -183,9 +174,12 @@ int Neody<T>::setPort(uint16_t _port) noexcept {
 template<class T>
 void Neody<T>::tcpInt() {
 
-    Main_maestro = new pMain_t(tcpControl, condition_one, worker_one, macaco);
-    Worker_maestro = new Worker_t(worker_one, qProcess, condition_one, worker_send, condition_response, routes);
-    Send_maestro = new Send_t(worker_send, condition_response);
+    wInstances = new eWorkers<T>();
+
+    wInstances->Main = new workers::pMain_t<T>(tcpControl, condition_one, worker_one, macaco);
+    wInstances->Worker = new workers::Worker_t<T>(worker_one, qProcess, condition_one, worker_send, condition_response, routes);
+    wInstances->Send = new workers::Send_t<T>(worker_send, condition_response);
+
 
     tcpControl = make_shared<T>();
     tcpControl->setBuffer(BUFFER);

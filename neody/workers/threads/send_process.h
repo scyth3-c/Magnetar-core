@@ -9,8 +9,8 @@
 #include <mutex>
 #include <vector>
 
-#include "../utils/sysprocess.h"
-#include "../utils/enums.h"
+#include "../../utils/sysprocess.h"
+#include "../../utils/enums.h"
 
 namespace workers {
 

@@ -8,7 +8,8 @@
 #include <stdexcept>
 #include <iostream>
 #include <memory>
-#include "../utils/enums.h"
+#include <condition_variable>
+#include "../../utils/enums.h"
 
 constexpr int BUFFER = enums::neo::eSize::BUFFER;
 constexpr int SESSION = enums::neo::eSize::SESSION;
@@ -36,7 +37,6 @@ namespace workers {
             }
         }
 
-
     public:
 
         explicit pMain_t(std::shared_ptr<T> &conn, std::condition_variable &con,  std::vector<std::shared_ptr<T>> &_worker, std::mutex& _macaco) :
@@ -50,7 +50,8 @@ namespace workers {
 
         inline  auto getMainProcess(uint16_t const &PORT, std::shared_ptr<HTTP_QUERY> &qProcess){
             return [&]()->void {
-                while (true){
+
+                while (enums::neo::eStatus::START){
                     try {
 
                         qProcess = make_shared<HTTP_QUERY>();
@@ -60,6 +61,9 @@ namespace workers {
 
                         if (!connection->on())
                             std::range_error("error al lanzar");
+
+                        if(close(connection->getDescription()) < 0)
+                            std::range_error("error al cerrar conexion principal");
 
                         add_queue(connection);
                     }
