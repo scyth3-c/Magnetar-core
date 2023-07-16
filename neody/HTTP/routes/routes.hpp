@@ -5,6 +5,7 @@
 
 #include <string>
 #include <memory>
+#include <utility>
 #include <vector>
 #include <initializer_list>
 #include <functional>
@@ -22,12 +23,12 @@ using std::string;
 
 template<class...P>
 struct Headers_t {
-    Headers_t(){}
-    Headers_t(std::initializer_list<P...>list): body(list) {}
+    Headers_t()= default;
+   [[maybe_unused]] Headers_t(std::initializer_list<P...>list): body(list) {}
     vector<string> body;
     inline string generate(){
         std::cout << std::flush;
-        string response{""};
+        string response;
         for (auto &it : body) {
             response += it + "\n";
         }
@@ -43,39 +44,39 @@ class Query {
    
     bool nexteable  { false};
     string response {"default"};
-    string last     {""};
+    string last;
     string headers;
     static dataRender *_cache;
 
     public:
-    Query() {}
-    ~Query() {  }
+    Query() = default;
+    ~Query() = default;
 
     Request body; // property access
 
     [[nodiscard]] string  getData()    const noexcept;
-    bool    getNext()    const noexcept;
-    
-    void    next()       noexcept;
+    [[nodiscard]] bool    getNext()    const noexcept;
+
+    [[maybe_unused]] void    next()       noexcept;
     void    lock()       noexcept;
 
-    void    setHeaders(HEADERS) noexcept;
-    void    setHeaders(string) noexcept;
+    [[maybe_unused]] void    setHeaders(HEADERS) noexcept;
+    [[maybe_unused]] void    setHeaders(const string&) noexcept;
 
     //  PARAMS:  CONTEN  OPTIONAL CALLBACK
-    
-    void    json(string, std::function<void()> opcional=[]()->void{}) noexcept;
-    void    html(string, std::function<void()> opcional=[]()->void{}) noexcept;
-    void    send(string, std::function<void()> opcional=[]()->void{}) noexcept;
-    void    readFile(string,string, std::function<void()> opcional=[]()->void{}) noexcept;
-    void    readFileX(string,string, std::function<void()> opcional=[]()->void{}) noexcept;
-    void    compose(string,int, std::function<void()> opcional=[]()->void{}) noexcept;
-    void    render(string, std::function<dataRender(dataRender&)> opcional=[](dataRender&)->dataRender{ return *_cache; }) noexcept;
+
+    [[maybe_unused]] void    json(const string&, const std::function<void()>& opcional=[]()->void{}) noexcept;
+    [[maybe_unused]] void    html(const string&, const std::function<void()>& opcional=[]()->void{}) noexcept;
+    [[maybe_unused]] void    send(const string&, const std::function<void()>& opcional=[]()->void{}) noexcept;
+    [[maybe_unused]] void    readFile(string,const string&, const std::function<void()>& opcional=[]()->void{}) noexcept;
+    [[maybe_unused]] void    readFileX(string,const string&, const std::function<void()>& opcional=[]()->void{}) noexcept;
+    [[maybe_unused]] void    compose(string,int, const std::function<void()>& opcional=[]()->void{}) noexcept;
+    [[maybe_unused]] void    render(string, const std::function<dataRender(dataRender&)>& opcional=[](dataRender&)->dataRender{ return *_cache; }) noexcept;
 
     // PARAMS:  CONTEN  STATUS OPTIONAL CALLBACK
-     void    json(string, int, std::function<void()> opcional=[]()->void{}) noexcept;
-     void    html(string, int, std::function<void()> opcional=[]()->void{}) noexcept;
-     void    send(string, int, std::function<void()> opcional=[]()->void{}) noexcept;
+    [[maybe_unused]] void    json(const string&, int, const std::function<void()>& opcional=[]()->void{}) noexcept;
+    [[maybe_unused]] void    html(const string&, int, const std::function<void()>& opcional=[]()->void{}) noexcept;
+    [[maybe_unused]] void    send(const string&, int, const std::function<void()>& opcional=[]()->void{}) noexcept;
 
 };
 
@@ -84,25 +85,25 @@ class Query {
 template <class... P>
 struct Core_init_t  {
 
-    Core_init_t(std::initializer_list<P...> list) : 
+    [[maybe_unused]] Core_init_t(std::initializer_list<P...> list) :
                 functions(std::move(list)) {}
-    Core_init_t() {}
+    [[maybe_unused]] Core_init_t() = default;
 
 
     std::vector<P...> functions;
-    Query *remote_control;
-    string response{""};
+    Query *remote_control{};
 
 
-inline size_t size() const noexcept { return functions.size(); } 
-inline string execute(string _raw) {
-    std::cout << std::flush;
+    [[nodiscard]] [[maybe_unused]] inline size_t size() const noexcept { return functions.size(); }
+inline string execute(const string& _raw) {
         remote_control = new Query();
+        string response{};
         for (size_t i = 0; i < functions.size(); i++) {
             remote_control->lock();
+            remote_control->body.clearParams();
             remote_control->body.setRawParametersData(_raw);
             functions[i](*remote_control);
-            if(remote_control->getNext() == true) continue;
+            if(remote_control->getNext()) continue;
             else break;
         }
         response += remote_control->getData();
@@ -110,7 +111,7 @@ inline string execute(string _raw) {
         return response;
     }
 };
-typedef Core_init_t<std::function<void(Query&)>> _callbacks;
+typedef Core_init_t<std::function<void(Query&)>> xcallargs;
 
 struct Route {
     private:
@@ -118,24 +119,23 @@ struct Route {
                route_type{};
 
     public:
-        Route(string _route) : route_name(_route) {}
-        Route() {}
-       ~Route() {}
+       [[maybe_unused]] explicit Route(string _route) : route_name(std::move(_route)) {}
+        Route() = default;
 
-    inline void operator= (string _val) { route_name = _val; }
-    inline void setType(string _type) { route_type = _type; }
-    inline string getName () const noexcept { return route_name; }
-    inline string getType () const noexcept { return route_type; }
+    inline Route& operator = (string _val) { route_name = std::move(_val); return *this; }
+    inline void setType(string _type) { route_type = std::move(_type); }
+    [[nodiscard]] inline string getName () const noexcept { return route_name; }
+    [[nodiscard]] inline string getType () const noexcept { return route_type; }
 };
 
 struct listen_routes {
-    listen_routes(string _route, _callbacks __callback, string _type) : callbacks(std::move(__callback)) {
-    route = _route;
-    route.setType(_type);
+    listen_routes(string _route, xcallargs callargs, string _type) : callbacks(std::move(callargs)) {
+    route = std::move(_route);
+    route.setType(std::move(_type));
     }
 
     Route route;
-    _callbacks callbacks;
+    xcallargs callbacks;
 };
 
 #endif /*ROUTES_DEMAND_HPP_*/

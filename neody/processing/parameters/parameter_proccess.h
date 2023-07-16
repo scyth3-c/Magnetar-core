@@ -42,12 +42,12 @@ public:
     ~HTTP_QUERY();
     
    [[nodiscard]] string route_refactor_params(string);
-   [[nodiscard]] string get_params(string &, bool &);
-   [[nodiscard]] string x_www_form_urlencoded(string &, string type = "");
-   [[nodiscard]] string findContenType(string);
-   [[nodiscard]] string selectPerType(string &, string&, bool&);
-   [[nodiscard]] std::pair<string, string> route_refactor(string);
-   [[nodiscard]] string trim(string);
+   [[nodiscard]] string get_params(string &, bool &) const;
+   [[nodiscard]] static string x_www_form_urlencoded(string &, const string& type = "");
+   [[nodiscard]] static string findContenType(string);
+   [[nodiscard]] string selectPerType(string &, string&, bool&) const;
+   [[nodiscard]] static std::pair<string, string> route_refactor(string);
+   [[nodiscard]] static string trim(string);
 };
 
 

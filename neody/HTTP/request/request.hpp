@@ -19,11 +19,14 @@ private:
 
 public:
   Request();
-  ~Request();
 
-  inline size_t total_params() const { return _parameters.size(); }
+  [[nodiscard]] inline size_t total_params() const { return _parameters.size(); }
+  [[nodiscard]] Param_t getParams();
 
-   Param_t getParams() const;
+   inline void clearParams() noexcept {
+       _parameters.clear();
+       route.clear();
+   };
 
   void setRawParametersData(string _raw_data);
 };

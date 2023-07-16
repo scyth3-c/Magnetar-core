@@ -53,15 +53,16 @@ namespace workers {
 
                         qProcess = make_shared<HTTP_QUERY>();
                         std::pair<string, string>   actual_route;
+
                         string     send_target;
-                        string      parametros{" "};
+                        string      parametros;
                         bool        cantget = true;
 
                         for(auto server=core.begin(); server != core.end();){
 
                             shared_ptr<T> &control = *server;
 
-                            string socket_response {control->getResponse()};
+                            string socket_response = control->getResponse();
 
                             if (socket_response.empty()){
                                 throw std::range_error("FAILED TO READ REQUEST, WAIT FEWS SECS BEFORE STARTING AGAIN");
@@ -72,7 +73,6 @@ namespace workers {
                             for (auto &it : routes) {
 
                                 if (it.route.getType() == actual_route.first && it.route.getName() == actual_route.second) {
-                                    std::cout.clear();
 
                                     parametros = qProcess->route_refactor_params(socket_response);
                                     send_target = it.callbacks.execute(parametros);
@@ -98,6 +98,7 @@ namespace workers {
             };
         }
     };
+
 };
 
 #endif // !ROUTE_PROCESS

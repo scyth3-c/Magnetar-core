@@ -1,17 +1,26 @@
-#include <iostream>
 #include "neody/neocore.h"
 
 int main() {
 
     Router router;
-
     router.setPort(3000);
 
-    std::cout << "servidor corriendo en el puerto: "<< router.getPort() << std::endl;
-
-
     router.get("/verify",{ [&](Query &http) {
-        http.html("<h1>macaco!</h1>");
+
+        auto params = http.body.getParams();
+
+        std::cout << "total params: " << http.body.total_params() << std::endl;
+
+        string nombre = params.get("nombre").value;
+
+
+        if (nombre  == "kevin"){
+            http.html("<h1> hola kevin </h1>");
+        } else{
+            http.html("<p> otro usuario </p>");
+        }
+
+
     }});
 
 
@@ -21,6 +30,6 @@ int main() {
 
 
     router.listen();
-    
+
     return 0;
 }

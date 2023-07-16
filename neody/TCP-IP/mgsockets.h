@@ -35,10 +35,10 @@ constexpr int MG_ERROR = -1;
 constexpr int MG_OK = 0;
 [[maybe_unused]] constexpr int MG_CONFUSED = 1;
 
-constexpr int DEF_HEAP_LIMIT = 512;
-constexpr int DEF_BUFFER_SIZE = 2048;
+constexpr int DEF_BUFFER_SIZE = 1024;
 
 constexpr int UnCATCH_ERROR_CH = -66;
+constexpr int chSPACE = 32;
 [[maybe_unused]] constexpr const char* SOCK_ERR = "_ERROR";
 
 class Engine {
@@ -53,7 +53,6 @@ class Engine {
                          socket_id = nullptr,
                          new_socket = nullptr,
                          state_receptor = nullptr,
-                         heap_limit = make_shared<int>(DEF_HEAP_LIMIT),
                          address_len = make_shared<int>(sizeof(address)),
                          option_mame = make_shared<int>(1),
                          buffer_size = make_shared<int>(DEF_BUFFER_SIZE);
@@ -82,12 +81,10 @@ class Engine {
 
 class Server : public Engine {
   private:
-     shared_ptr
-               <string> buffereOd_data = nullptr;
+
+     shared_ptr<string> buffereOd_data;
      shared_ptr
                <int> static_sessions = make_shared<int>(1);
-
-    [[maybe_unused]] static std::mutex VICTORIA;
 
   public:
      
@@ -102,7 +99,7 @@ class Server : public Engine {
      void getResponseProcessing() override;
 
      [[nodiscard]] inline string getResponse()  const override {
-           return *buffereOd_data;       
+           return *buffereOd_data;
       }
 };
 

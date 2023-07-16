@@ -64,20 +64,20 @@ public:
     explicit Neody();
     ~Neody(){ delete wInstances; }
 
-    int http_response(string, _callbacks, string optional);
-    [[maybe_unused]] int get(string, _callbacks);
-    [[maybe_unused]] int post(string, _callbacks);
-    [[maybe_unused]] int put(string, _callbacks);
-    [[maybe_unused]] int deleteX(string, _callbacks);
-    [[maybe_unused]] int patch(string, _callbacks);
-    [[maybe_unused]] int head(string, _callbacks);
-    [[maybe_unused]] int options(string, _callbacks);
-    [[maybe_unused]] int link(string, _callbacks);
-    [[maybe_unused]] int unlink(string, _callbacks);
-    [[maybe_unused]] int purge(string, _callbacks);
+    int http_response(string, xcallargs, string optional);
+    [[maybe_unused]] int get(string, xcallargs);
+    [[maybe_unused]] int post(string, xcallargs);
+    [[maybe_unused]] int put(string, xcallargs);
+    [[maybe_unused]] int deleteX(string, xcallargs);
+    [[maybe_unused]] int patch(string, xcallargs);
+    [[maybe_unused]] int head(string, xcallargs);
+    [[maybe_unused]] int options(string, xcallargs);
+    [[maybe_unused]] int link(string, xcallargs);
+    [[maybe_unused]] int unlink(string, xcallargs);
+    [[maybe_unused]] int purge(string, xcallargs);
     
     int setPort(uint16_t) noexcept;
-    [[nodiscard]] inline uint16_t getPort() const noexcept{return PORT;};
+    [[nodiscard]] [[maybe_unused]] inline uint16_t getPort() const noexcept{return PORT;};
     void listen();
 
 };
@@ -95,7 +95,7 @@ Neody<T>::Neody() {
 
 template <class T>
 
-int Neody<T>::http_response(string _xRoute, _callbacks _funcs, string optional_type) {
+int Neody<T>::http_response(string _xRoute, xcallargs _funcs, string optional_type) {
     try {
         routes.emplace_back(std::move(_xRoute), std::move(_funcs), std::move(optional_type));
     }
@@ -107,43 +107,43 @@ int Neody<T>::http_response(string _xRoute, _callbacks _funcs, string optional_t
 }
 
 template <class T>
-[[maybe_unused]] int Neody<T>::get(string _xRoute, _callbacks _funcs){
+[[maybe_unused]] int Neody<T>::get(string _xRoute, xcallargs _funcs){
     return http_response(_xRoute, _funcs, GET_TYPE);
 }
 template <class T>
-[[maybe_unused]] int Neody<T>::post(string _xRoute, _callbacks _funcs) {
+[[maybe_unused]] int Neody<T>::post(string _xRoute, xcallargs _funcs) {
     return http_response(_xRoute, _funcs, POST_TYPE);
 }
 template <class T>
-[[maybe_unused]] int Neody<T>::put(string _xRoute, _callbacks _funcs) {
+[[maybe_unused]] int Neody<T>::put(string _xRoute, xcallargs _funcs) {
     return http_response(_xRoute, _funcs, PUT_TYPE);
 }
 template <class T>
-[[maybe_unused]] int Neody<T>::deleteX(string _xRoute, _callbacks _funcs) {
+[[maybe_unused]] int Neody<T>::deleteX(string _xRoute, xcallargs _funcs) {
     return http_response(_xRoute, _funcs, DELETE_TYPE);
 }
 template <class T>
-[[maybe_unused]] int Neody<T>::patch(string _xRoute, _callbacks _funcs) {
+[[maybe_unused]] int Neody<T>::patch(string _xRoute, xcallargs _funcs) {
     return http_response(_xRoute, _funcs, PATCH_TYPE);
 }
 template <class T>
-[[maybe_unused]] int Neody<T>::head(string _xRoute, _callbacks _funcs) {
+[[maybe_unused]] int Neody<T>::head(string _xRoute, xcallargs _funcs) {
     return http_response(_xRoute, _funcs, HEAD_TYPE);
 }
 template <class T>
-[[maybe_unused]] int Neody<T>::options(string _xRoute, _callbacks _funcs) {
+[[maybe_unused]] int Neody<T>::options(string _xRoute, xcallargs _funcs) {
     return http_response(_xRoute, _funcs, OPTIONS_TYPE);
 }
 template <class T>
-[[maybe_unused]]  int Neody<T>::link(string _xRoute, _callbacks _funcs) {
+[[maybe_unused]]  int Neody<T>::link(string _xRoute, xcallargs _funcs) {
     return http_response(_xRoute, _funcs, LINK_TYPE);
 }
 template <class T>
-[[maybe_unused]] int Neody<T>::unlink(string _xRoute, _callbacks _funcs) {
+[[maybe_unused]] int Neody<T>::unlink(string _xRoute, xcallargs _funcs) {
     return http_response(_xRoute, _funcs, UNLINK_TYPE);
 }
 template <class T>
-[[maybe_unused]] int Neody<T>::purge(string _xRoute, _callbacks _funcs) {
+[[maybe_unused]] int Neody<T>::purge(string _xRoute, xcallargs _funcs) {
     return http_response(_xRoute, _funcs, PURGE_TYPE);
 }
 
