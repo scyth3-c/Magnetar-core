@@ -1,8 +1,5 @@
 #include "mgsockets.h"
 
-[[maybe_unused]] std::mutex Server::VICTORIA;
-
-
 Engine::Engine(uint16_t _xport) {
      PORT = make_shared<uint16_t>(_xport);
 }
@@ -63,43 +60,6 @@ int Engine::setPort(uint16_t xPort) {
           return MG_ERROR;
      }
 }
-
-
-[[maybe_unused]] int Engine::setHeapLimit(int _max) {
-     try {
-          if (heap_limit == nullptr) {
-               heap_limit = make_shared<int>(_max);
-          } 
-          heap_limit.reset(new int(_max));
-          if(*heap_limit != _max) throw std::range_error("error al asignar el HeapLimit");
-          return MG_OK;
-     }
-     catch (const std::exception &e) {
-          std::cerr << e.what() << '\n';
-          return MG_ERROR;
-     }
-}
-
-
-
-int Engine::getHeapLimit() {
-     try {
-
-          if(*heap_limit < 0) throw std::range_error("no se puedo extraer el HeapLimit"); 
-          if (*heap_limit > 0) {
-               return *heap_limit;
-          }
-          else {
-               heap_limit = make_shared<int>(DEF_HEAP_LIMIT);
-               return *heap_limit;
-          }
-     }
-     catch (const std::exception &e) {
-          std::cerr << e.what() << '\n';
-          return MG_ERROR;
-     }
-}
-
 
 int Engine::getPort() {
      try {
@@ -190,22 +150,25 @@ int Server::on(function<void(string*)>optional) {
 
 
 void Server::getResponseProcessing() {
-
-     try {    
-          string receptor;
+     try {
+          string base{};
           vector<char> buffer = {'1'};
      
           buffer.reserve(*buffer_size);
-          
           read(*new_socket, buffer.data(), *buffer_size);
-     
-          for (int it = 0; it <= *buffer_size-(*heap_limit); it++) {
-               if (int(buffer[it] == UnCATCH_ERROR_CH))
-                    continue;
-               receptor += buffer[it];
+
+          for (int it = 0; it <= *buffer_size; it++) {
+              if (int(buffer[it]) == 0 && int(buffer[it]) == 0)
+                  break;
+              if(int(buffer[it]) == UnCATCH_ERROR_CH)
+                  continue;
+              if (int(buffer[it]) == 10)
+                  continue;
+               base += buffer[it];
           }
-           if(receptor.empty()) throw std::range_error("error, el mensaje no se recibio");
-          buffereOd_data = make_shared<string>(receptor);
+
+          if(base.empty()) throw std::range_error("error, el mensaje no se recibio");
+          buffereOd_data = make_shared<string>(base);
      }
      catch (const std::exception &e) {
           std::cerr << e.what() << '\n';
@@ -228,11 +191,14 @@ void Server::sendResponse(const string& _msg) {
 void Client::getResponseProcessing() {
      
           string receptor;
-          vector<char> buffer = {'1'};
+          vector<char> buffer = {};
           buffer.reserve(*buffer_size);
+
           read(*socket_id, buffer.data(), *buffer_size);
 
-          for (int it = 0; it <= *buffer_size - (*heap_limit); it++) {
+          for (int it = 0; it <= *buffer_size; it++) {
+              if (int(buffer[it]) == 0 && int(buffer[it]) == 0)
+                  break;
                if (int(buffer[it] == UnCATCH_ERROR_CH))
                     continue;
                receptor += buffer[it];

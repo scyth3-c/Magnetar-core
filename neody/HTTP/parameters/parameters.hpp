@@ -1,6 +1,7 @@
 #ifndef PARAMTERS_HPP  
 #define PARAMTERS_HPP
 
+#include <utility>
 #include <vector>
 #include <string>
 #include <iostream>
@@ -15,13 +16,13 @@ class param_box{
     public:
 
     param_box(string, string);
-    param_box(std::pair<string,string> conten) : _body(conten) {
+    explicit param_box(std::pair<string,string> conten) : _body(conten) {
         name = std::move(conten.first);
         value = std::move(conten.second);
  }  
 
-    string name{""};
-    string value{""};
+    string name;
+    string value;
     
 };
 
@@ -33,19 +34,20 @@ class Param_t {
 public: 
 
   Param_t();
-  Param_t(vector<std::pair<string,string>> list) :  _list(list) {}
+  ~Param_t(){_list.clear();}
+
+  [[maybe_unused]] explicit Param_t(vector<std::pair<string,string>> list) :  _list(std::move(list)) {}
 
   param_box operator[](int);
 
-  void setConten(vector<std::pair<string,string>>);
+  void setConten(vector<std::pair<string,string>>&);
 
-  inline void clear() { _list.clear(); }
-  inline bool empty(){return _list.empty() ? true : false;}
+  [[maybe_unused]] inline void clear() { _list.clear(); }
+  [[maybe_unused]] inline bool empty(){return _list.empty();}
 
-  bool exist(string);
+  [[maybe_unused]] bool exist(const string&);
 
-  param_box get(string);
-
+  [[maybe_unused]] param_box get(const string&);
   [[nodiscard]] inline vector<std::pair<string,string>> toArray(){return _list;}
 
 };
@@ -54,7 +56,7 @@ public:
 
 
 struct utility_t {
-  static string prepare_basic(string _txt, string _type, string headers, string status="200") {
+  static string prepare_basic(const string& _txt, const string& _type, const string& headers, const string& status="200") {
     return         "HTTP/1.1 "+status+" OK\n"
                    "Server: Neody/0.5\n"
                    "Content-Type: "+_type+"\n"

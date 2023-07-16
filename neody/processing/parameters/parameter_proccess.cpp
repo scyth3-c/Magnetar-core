@@ -1,11 +1,10 @@
 #include "parameter_proccess.h"
 
 
-HTTP_QUERY::HTTP_QUERY() {}
-HTTP_QUERY::~HTTP_QUERY() {}
+HTTP_QUERY::HTTP_QUERY() = default;
+HTTP_QUERY::~HTTP_QUERY() = default;
 
-
-string HTTP_QUERY::x_www_form_urlencoded(string &target, string plain)
+string HTTP_QUERY::x_www_form_urlencoded(string &target, const string& plain)
 {
     string params{};
     std::cout << std::flush;
@@ -17,13 +16,12 @@ string HTTP_QUERY::x_www_form_urlencoded(string &target, string plain)
     }
     std::reverse(params.begin(), params.end());
 
-    fflush(stdin);
     return plain + params;
 }
 
-string HTTP_QUERY::selectPerType(string &target, string &conten_type, bool &init)
+string HTTP_QUERY::selectPerType(string &target, string &conten_type, bool &init) const
 {
-    std::cout << std::flush;
+
     if (conten_type == X_WWW_FORM)
     {
         init = true;
@@ -43,9 +41,10 @@ string HTTP_QUERY::selectPerType(string &target, string &conten_type, bool &init
 string HTTP_QUERY::route_refactor_params(string _target)
 {
     bool init = false;
+
     string content_type = findContenType(_target);
-    string content_type_value = trim(std::move(content_type));
-    std::cout << std::flush;
+    string content_type_value = trim(content_type);
+
     if(content_type != STR_ERR) {
         route = make_shared<string>(selectPerType(_target, content_type_value , init));
         return init ? *route : NOT_PARAMS;
@@ -61,8 +60,6 @@ std::pair<string, string> HTTP_QUERY::route_refactor(string target)
     std::pair<string, string> route;
     bool init = false;
 
-    std::cout<<std::flush;
-
     for (auto &it : target)
     {
         if (it == char(32) || it == '/')
@@ -72,11 +69,10 @@ std::pair<string, string> HTTP_QUERY::route_refactor(string target)
         else
         {
             route.first += it;
-            std::cout<<std::flush;
         }
     }
 
-    std::cout<<std::flush;
+
     for (size_t ui = 0; ui < size; ui++)
     {
 
@@ -106,10 +102,9 @@ std::pair<string, string> HTTP_QUERY::route_refactor(string target)
 
 string HTTP_QUERY::findContenType(string text)
 {
-    std::string content_type = "";
+    std::string content_type;
     size_t index = text.find("Content-Type: ");
 
-    std::cout << std::flush;
     if (index != std::string::npos) {
         index += 13; 
         while (text[index] != char(13)) {
@@ -123,9 +118,9 @@ string HTTP_QUERY::findContenType(string text)
 }
 
 
-string HTTP_QUERY::get_params(string &target, bool &init)
+string HTTP_QUERY::get_params(string &target, bool &init) const
 {
-    string *params = new string("");
+    auto *params = new string("");
     std::cout << std::flush;
     for (size_t ui = 3; ui < target.size(); ui++)
     {
