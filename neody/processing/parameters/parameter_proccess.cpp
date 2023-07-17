@@ -7,7 +7,7 @@ HTTP_QUERY::~HTTP_QUERY() = default;
 string HTTP_QUERY::x_www_form_urlencoded(string &target, const string& plain)
 {
     string params{};
-    std::cout << std::flush;
+
     for (size_t ti = target.length() - 1; ti > 0; ti--)
     {
         if (target[ti] == ' ' || target[ti] == char(13))
@@ -84,7 +84,6 @@ std::pair<string, string> HTTP_QUERY::route_refactor(string target)
             }
             if (target[ui] != ' ')
             {
-                std::cout<<std::flush;
                 route.second += target[ui];
                 std::cin.clear();
             }
@@ -102,11 +101,15 @@ std::pair<string, string> HTTP_QUERY::route_refactor(string target)
 
 string HTTP_QUERY::findContenType(string text)
 {
+    if (text.empty())  { return STR_ERR; }
+
+    std::string target = "Content-Type: ";
+
     std::string content_type;
-    size_t index = text.find("Content-Type: ");
+    size_t index = text.find(target);
 
     if (index != std::string::npos) {
-        index += 13; 
+        index += target.length()  - 1;
         while (text[index] != char(13)) {
             content_type += text[index];
             index++;
@@ -121,7 +124,6 @@ string HTTP_QUERY::findContenType(string text)
 string HTTP_QUERY::get_params(string &target, bool &init) const
 {
     auto *params = new string("");
-    std::cout << std::flush;
     for (size_t ui = 3; ui < target.size(); ui++)
     {
         if (init)
@@ -135,6 +137,9 @@ string HTTP_QUERY::get_params(string &target, bool &init) const
             init = true;
         }
     }
+    if (params->empty() || params->length() <= 1 ){
+        return NOT_PARAMS;
+    }
     fflush(stdin);
     return *params;
 }
@@ -142,4 +147,9 @@ string HTTP_QUERY::get_params(string &target, bool &init) const
 string HTTP_QUERY::trim(string target){
     target.erase(std::remove_if(target.begin(), target.end(), ::isspace), target.end());
     return target;
+}
+
+string HTTP_QUERY::route_refactor_params_get(string rawresponse) const {
+    bool init = false;
+    return get_params(rawresponse, init);
 }

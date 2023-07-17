@@ -61,7 +61,6 @@ namespace workers {
                         for(auto server=core.begin(); server != core.end();){
 
                             shared_ptr<T> &control = *server;
-
                             string socket_response = control->getResponse();
 
                             if (socket_response.empty()){
@@ -74,8 +73,14 @@ namespace workers {
 
                                 if (it.route.getType() == actual_route.first && it.route.getName() == actual_route.second) {
 
-                                    parametros = qProcess->route_refactor_params(socket_response);
+                                    if (actual_route.first == GET_TYPE){
+                                        parametros = qProcess->route_refactor_params_get(socket_response);
+                                    } else{
+                                        parametros = qProcess->route_refactor_params(socket_response);
+                                    }
+
                                     send_target = it.callbacks.execute(parametros);
+
                                     cantget = false;
 
                                     break;

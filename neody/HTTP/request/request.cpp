@@ -29,7 +29,6 @@ void Request::setRawParametersData(string _raw)
 Param_t Request::getParams() {
     Param_t nuevo;
     try {
-//        std::cout << "[" << _parameters[0].first << "]---[" << _parameters[0].second <<"]" << std::endl;
        nuevo.setConten(_parameters);
        return nuevo;
     }

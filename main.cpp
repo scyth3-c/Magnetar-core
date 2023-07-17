@@ -1,27 +1,51 @@
 #include "neody/neocore.h"
+#include <iostream>
 
 int main() {
 
-    Router router;
-    router.setPort(3000);
+    Router router(3000);
 
-    router.get("/verify",{ [&](Query &http) {
-
-        auto params = http.body.getParams();
-
-        std::cout << "total params: " << http.body.total_params() << std::endl;
-
-        string nombre = params.get("nombre").value;
+    std::string token = "12345";
 
 
-        if (nombre  == "kevin"){
-            http.html("<h1> hola kevin </h1>");
-        } else{
-            http.html("<p> otro usuario </p>");
-        }
+    // test
+    // http://localhost:3000/verify?id=12345&nombre=neodimio
 
 
-    }});
+    router.get("/verify",{
+
+       [&](Query &http) {
+
+           JSON_s error = {"error", "no id"};
+           JSON_s invalid = {"error", "invalid"};
+
+           auto params = http.body.getParams();
+
+           if (!params.exist("id")) {
+               http.json(error());
+           }
+
+           if (params.get("id").value == token){
+               http.next();
+           } else{
+               http.json(invalid());
+           }
+
+           },
+
+        [&](Query &http) {
+
+             auto params = http.body.getParams();
+             string nombre = params.get("nombre").value;
+
+             if (nombre.length() > 5)
+                http.html("<h1> hola "+  nombre  +" </h1>");
+             else
+                http.html("<p> adios </p>");
+
+     }}
+    );
+
 
 
     router.get("/",{ [&](Query &http) {
