@@ -42,6 +42,7 @@ public:
     ~HTTP_QUERY();
     
    [[nodiscard]] string route_refactor_params(string);
+   [[nodiscard]] string route_refactor_params_get(string) const;
    [[nodiscard]] string get_params(string &, bool &) const;
    [[nodiscard]] static string x_www_form_urlencoded(string &, const string& type = "");
    [[nodiscard]] static string findContenType(string);
@@ -51,4 +52,4 @@ public:
 };
 
 
-#endif //!
+#endif //PARAM_PROCESSING_HPP

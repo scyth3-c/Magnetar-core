@@ -53,6 +53,7 @@ class Query {
     ~Query() = default;
 
     Request body; // property access
+    Request query;
 
     [[nodiscard]] string  getData()    const noexcept;
     [[nodiscard]] bool    getNext()    const noexcept;
@@ -89,10 +90,8 @@ struct Core_init_t  {
                 functions(std::move(list)) {}
     [[maybe_unused]] Core_init_t() = default;
 
-
     std::vector<P...> functions;
     Query *remote_control{};
-
 
     [[nodiscard]] [[maybe_unused]] inline size_t size() const noexcept { return functions.size(); }
 inline string execute(const string& _raw) {
