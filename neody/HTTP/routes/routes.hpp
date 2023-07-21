@@ -27,7 +27,6 @@ struct Headers_t {
    [[maybe_unused]] Headers_t(std::initializer_list<P...>list): body(list) {}
     vector<string> body;
     inline string generate(){
-        std::cout << std::flush;
         string response;
         for (auto &it : body) {
             response += it + "\n";

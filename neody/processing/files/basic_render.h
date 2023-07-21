@@ -14,22 +14,21 @@ class BasicRead {
 private:
     shared_ptr<std::ifstream> reader = nullptr;
 public:
-    BasicRead() { }
+    BasicRead() = default;
 
-    string processing(string path) {
+    string processing(const string& path) {
 
-        std::cout << std::flush;
         reader = make_shared<std::ifstream>();
         reader->open(path);
-        string chunk{""};
-        string body{""};
+        string chunk;
+        string body;
         while(getline(*reader, chunk)){
             body += chunk;
         }
         reader.reset();
         return body;
     }
-    ~BasicRead(){}
+    ~BasicRead()= default;
 };
 
 #endif // !BASIC_READER_HPP

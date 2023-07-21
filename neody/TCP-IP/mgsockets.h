@@ -25,20 +25,19 @@ using std::vector;
 using std::function;
 
 constexpr const char* LOCALHOST = "127.0.0.1";
-constexpr uint16_t DEFAULT_PORT = 3000;
+constexpr uint16_t DEFAULT_PORT = 0xBB8;
 
 constexpr int DOMAIN = AF_INET;
 constexpr int TYPE = SOCK_STREAM;
-constexpr int PROTOCOL = 0;
+constexpr int PROTOCOL = 0x0;
 
-constexpr int MG_ERROR = -1;
-constexpr int MG_OK = 0;
-[[maybe_unused]] constexpr int MG_CONFUSED = 1;
+constexpr int MG_ERROR = -0x1;
+constexpr int MG_OK = 0x0;
+[[maybe_unused]] constexpr int MG_CONFUSED = 0x1;
 
-constexpr int DEF_BUFFER_SIZE = 1024;
+constexpr int DEF_BUFFER_SIZE = 0x400;
+constexpr int UnCATCH_ERROR_CH = -0x42;
 
-constexpr int UnCATCH_ERROR_CH = -66;
-constexpr int chSPACE = 32;
 [[maybe_unused]] constexpr const char* SOCK_ERR = "_ERROR";
 
 class Engine {
@@ -54,7 +53,7 @@ class Engine {
                          new_socket = nullptr,
                          state_receptor = nullptr,
                          address_len = make_shared<int>(sizeof(address)),
-                         option_mame = make_shared<int>(1),
+                         option_mame = make_shared<int>(0x1),
                          buffer_size = make_shared<int>(DEF_BUFFER_SIZE);
     public:
 
