@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <memory>
+#include <array>
 #include <condition_variable>
 #include "../../utils/enums.h"
 
@@ -21,34 +22,32 @@ namespace workers {
     private:
          std::shared_ptr<T> &connection = nullptr;
          unsigned short int next_register{};
-         std::condition_variable &condition;
-         std::vector<std::shared_ptr<T>> &worker;
          std::mutex &macaco;
 
+       std::array<std::vector<std::shared_ptr<T>>, 0x3> &workers_base;
+       std::array<std::condition_variable, 0x3> &conditions_base;
+
         inline void add_queue(std::shared_ptr<T> &base) {
-            switch (next_register) {
-                case 0:
-                    worker.push_back(base);
-                    {  condition.notify_all(); macaco.unlock(); }
-                    // next_register++
-                    break;
-                default:
-                    break;
+            if (next_register >= workers_base.size()) {
+                        next_register = 0;
             }
+            workers_base[next_register].push_back(base);
+            {  conditions_base[next_register].notify_all(); macaco.unlock(); }
+            next_register++;
         }
 
     public:
 
-        explicit pMain_t(std::shared_ptr<T> &conn, std::condition_variable &con,  std::vector<std::shared_ptr<T>> &_worker, std::mutex& _macaco) :
+        explicit pMain_t(std::array<std::vector<std::shared_ptr<T>>, 0x3> &_workers_base, std::array<std::condition_variable, 0x3> &_conditions_base ,  std::shared_ptr<T> &conn, std::mutex& _macaco) :
+        workers_base(_workers_base ),
+        conditions_base(_conditions_base),
         connection(conn),
-        condition(con),
-        worker(_worker),
         macaco(_macaco)
         {
              next_register = enums::neo::eSize::DEF_REG;
         }
 
-        inline  auto getMainProcess(uint16_t const &PORT, std::shared_ptr<HTTP_QUERY> &qProcess){
+        inline  auto getMainProcess(std::shared_ptr<HTTP_QUERY> &qProcess){
             return [&]()->void {
 
                 while (enums::neo::eStatus::START){

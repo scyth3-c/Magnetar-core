@@ -23,16 +23,15 @@ private:
     shared_ptr<std::ifstream> reader = nullptr;
 
 public:
-    MgReader() {}
-    ~MgReader() {}
+    MgReader() = default;
+    ~MgReader() = default;
 
     inline string processing(string path, int reserve)
     {
 
         size_t init = 0;
-        string folder_base = "";
+        string folder_base;
 
-        std::cout << std::flush;
         for (int iterator = path.length(); iterator >= 0; iterator--)
         {
             if (path[iterator] == '/')
@@ -41,7 +40,7 @@ public:
                 break;
             }
         }
-        for (size_t it = 0; it <= init; it++)
+        for (size_t it = 0x0; it <= init; it++)
         {
             folder_base += path[it];
         }
@@ -54,9 +53,7 @@ public:
         string body = readFile(path);
         string buffer;
 
-        std::cout << std::flush;
-
-        for (int global = 0; global < reserve; global++)
+        for (int global = 0x0; global < reserve; global++)
         {
             buffer = tratament(body, folder_base);
             body = buffer;
@@ -81,16 +78,16 @@ public:
 
             if (eye == _OPEN)
             {
-                body[it] = char(32);
-                body[it + 1] = char(32);
-                coord.first = it + 2;
+                body[it] = char(0x20);
+                body[it + 1] = char(0x20);
+                coord.first = it + 0x2;
                 safe = 1;
             }
             else if (eye == _CLOSE)
             {
                 safe = 2;
-                body[it] = char(32);
-                body[it + 1] = char(32);
+                body[it] = char(0x20);
+                body[it + 1] = char(0x20);
                 coord.second = it - 1;
                 break;
             }
@@ -99,12 +96,12 @@ public:
         if (safe == 1)
             return notify_html::noSafe();
 
-        string name{""};
+        string name;
 
         for (int it = coord.first; it <= coord.second; it++)
         {
             name += body[it];
-            body[it] = char(32);
+            body[it] = char(0x20);
         }
 
         string target = folder_base + name;
@@ -119,12 +116,12 @@ public:
         return newest;
     }
 
-    inline string readFile(string target)
+    inline string readFile(const string& target)
     {
 
         reader = make_shared<std::ifstream>(target.c_str());
-        string chunk = "";
-        string module = "";
+        string chunk;
+        string module;
 
         while (getline(*reader, chunk))
         {
@@ -136,15 +133,14 @@ public:
         return module;
     }
 
-    inline string normalize(string target)
+    static inline string normalize(string target)
     {
-        string temp_box = "";
-        std::cout << std::flush;
-        for (size_t i = 0; i < target.length(); i++)
+        string temp_box;
+        for (char & i : target)
         {
-            if (target[i] == char(32))
-                target[i] = '\0';
-            temp_box += target[i];
+            if (i == char(32))
+                i = '\0';
+            temp_box += i;
         }
         return temp_box;
     }

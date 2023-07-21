@@ -117,7 +117,7 @@ int Server::on(function<void(string*)>optional) {
                          SO_REUSEADDR |
                              SO_REUSEPORT,
                          &*option_mame,
-                         sizeof(*option_mame)) != 0) {
+                         sizeof(*option_mame)) != 0x0) {
                throw std::range_error("error al establecer el servidor");
           }
           address.sin_family = AF_INET;
@@ -127,13 +127,13 @@ int Server::on(function<void(string*)>optional) {
           if (bind(*socket_id, (struct sockaddr *)&address, sizeof(address)) < 0) {
                throw std::range_error("error al enlazar el servidor");
           }
-          if (listen(*socket_id, *static_sessions) < 0) {
+          if (listen(*socket_id, *static_sessions) < 0x0) {
                throw std::range_error("error al escuchar el puerto");
           }
           if ((new_socket = make_shared<int>(
                    accept(*socket_id,
                           (struct sockaddr *)&address,
-                          (socklen_t *)&address_len))) < 0) {
+                          (socklen_t *)&address_len))) < 0x0) {
                throw std::range_error("error al conectar el servidor");
           }
                getResponseProcessing();
@@ -153,16 +153,16 @@ void Server::getResponseProcessing() {
      try {
           string base{};
           vector<char> buffer = {'1'};
-     
+
           buffer.reserve(*buffer_size);
           read(*new_socket, buffer.data(), *buffer_size);
 
           for (int it = 0; it <= *buffer_size; it++) {
-              if (int(buffer[it]) == 0 && int(buffer[it]) == 0)
+              if (int(buffer[it]) == 0 && int(buffer[it]) == 0x0)
                   break;
               if(int(buffer[it]) == UnCATCH_ERROR_CH)
                   continue;
-              if (int(buffer[it]) == 10)
+              if (int(buffer[it]) == 0xA)
                   continue;
                base += buffer[it];
           }

@@ -18,17 +18,16 @@ using std::make_shared;
 using std::shared_ptr;
 
 
-class NeoRender
-{
+class NeoRender {
 private:
     shared_ptr<std::ifstream> reader = nullptr;
     shared_ptr<std::ofstream> writter = nullptr;
    
 
 public:
-    NeoRender() {}
+    NeoRender() = default;
 
-    string processing(string path) {
+    [[maybe_unused]] string processing(const string& path) {
 
             string neo_base;
 
@@ -59,19 +58,19 @@ public:
 
         bool init = false;
         std::pair<int, int> coords;
-        code = {NEOBASE};
+        code = NEOBASE;
 
 
         for (size_t iterator = 0; iterator < neo_base.length() - 1; iterator++) {
             if (init) {
                 if (neo_base[iterator] == CODE_LOCATE) {
-                    coords.second = iterator;
+                    coords.second = (int)iterator;
                     break;
                 }
             }
             if (neo_base[iterator] == CODE_LOCATE && !init)
             {
-                coords.first = iterator;
+                coords.first = (int)iterator;
                 code += code_body;
                 init = true;
                 continue;

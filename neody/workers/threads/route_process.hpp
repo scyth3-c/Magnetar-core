@@ -21,17 +21,13 @@ namespace workers {
     private:
 
         std::vector<listen_routes> &routes;
-        std::vector<std::shared_ptr<T>> &core;
         std::shared_ptr<HTTP_QUERY> qProcess = nullptr;
-        std::condition_variable  &condition;
         std::condition_variable  &condition_response;
         std::vector<std::tuple<std::shared_ptr<T>, std::string>> &worksend;
 
     public:
-        Worker_t(std::vector<std::shared_ptr<T>>& _core, std::shared_ptr<HTTP_QUERY>& _qProcess, std::condition_variable& _condition, std::vector<std::tuple<std::shared_ptr<T>, std::string>>& _worksend, std::condition_variable& _condition_response, std::vector<listen_routes>& _routes)
-                : core(_core),
-                  qProcess(_qProcess),
-                  condition(_condition),
+        Worker_t(std::shared_ptr<HTTP_QUERY>& _qProcess, std::vector<std::tuple<std::shared_ptr<T>, std::string>>& _worksend, std::condition_variable& _condition_response, std::vector<listen_routes>& _routes)
+                : qProcess(_qProcess),
                   worksend(_worksend),
                   condition_response(_condition_response),
                   routes(_routes)
@@ -39,8 +35,7 @@ namespace workers {
         }
         ~Worker_t() = default;
 
-        inline auto getWorker(std::mutex &macaco, std::mutex &victor, std::mutex &victoria){
-
+        inline auto getWorker(std::mutex &macaco, std::mutex &victor, std::mutex &victoria,  std::vector<std::shared_ptr<T>> &core, std::condition_variable  &condition){
             return [&]()->void{
                 while(enums::neo::eStatus::START){
 
@@ -104,6 +99,6 @@ namespace workers {
         }
     };
 
-};
+}
 
 #endif // !ROUTE_PROCESS

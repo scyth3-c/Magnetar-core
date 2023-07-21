@@ -24,10 +24,10 @@ private:
     shared_ptr<std::ofstream> writter = nullptr;
 
 public:
-    CppReader() {}
+    CppReader() = default;
     
 
-    string processing(string path) {
+    string processing(const string& path) {
 
         string nombre,
             chunk,
@@ -39,7 +39,7 @@ public:
 
         bool init = false;
         std::pair<int, int> coords;
-        code = {BASE};
+        code = BASE;
 
         reader = make_shared<std::ifstream>(path);
         while (getline(*reader, chunk))
@@ -47,14 +47,13 @@ public:
             body += chunk;
         }
         reader->close();
-        std::cout << std::flush;
         for (size_t iterator = 0; iterator < body.length() - 1; iterator++)
         {
             if (init)
             {
                 if (body[iterator] == CODE_LOCATE)
                 {
-                    coords.second = iterator;
+                    coords.second = (int)iterator;
                     break;
                 }
                 else
@@ -65,7 +64,7 @@ public:
 
             if (body[iterator] == CODE_LOCATE && !init)
             {
-                coords.first = iterator;
+                coords.first = (int)iterator;
                 init = true;
                 continue;
             }

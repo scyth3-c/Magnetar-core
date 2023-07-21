@@ -8,7 +8,7 @@ string HTTP_QUERY::x_www_form_urlencoded(string &target, const string& plain)
 {
     string params{};
 
-    for (size_t ti = target.length() - 1; ti > 0; ti--)
+    for (size_t ti = target.length() - 0x1; ti > 0x0; ti--)
     {
         if (target[ti] == ' ' || target[ti] == char(13))
             break;
@@ -88,7 +88,7 @@ std::pair<string, string> HTTP_QUERY::route_refactor(string target)
                 std::cin.clear();
             }
         }
-        else if (target[ui + 1] == '/')
+        else if (target[ui + 0x1] == '/')
         {
             init = true;
         }
@@ -110,7 +110,7 @@ string HTTP_QUERY::findContenType(string text)
 
     if (index != std::string::npos) {
         index += target.length()  - 1;
-        while (text[index] != char(13)) {
+        while (text[index] != char(0xd)) {
             content_type += text[index];
             index++;
         }

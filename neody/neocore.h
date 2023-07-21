@@ -2,67 +2,49 @@
 #define NEODIMIO_HPP
 
 #include "TCP-IP/mgsockets.h"
-#include "utils/notify.h"
-
 #include "HTTP/routes/routes.hpp"
 #include "HTTP/request/request.hpp"
-
-#include "processing/parameters/parameter_proccess.h"
-
 #include "utils/enums.h"
 #include "utils/sysprocess.h"
-
 #include "workers/worker_core.h"
+#include "workers/wInstances.h"
 
 #include <thread>
-#include <chrono>
-#include <mutex>
-#include <condition_variable>
 #include <memory>
 
 #include <string>
 #include <vector>
-#include <stdexcept>
-#include <queue>
-#include <atomic>
-#include <tuple>
-#include <ios>
 
 using std::make_shared;
 using std::string;
 
 using workers::eWorkers;
+using workers::wInstances;
 
 template <class T>
 class Neody {
 private:
 
-    // Control de instancias paralos workers
-    eWorkers<T> *wInstances = nullptr;
+    // Control de instancias
+    ::eWorkers<T> *eWorkers = nullptr;
+    ::wInstances<T> * wInstances = nullptr;
 
-    std::vector<std::shared_ptr<T>> worker_one;
-    std::vector<std::tuple<std::shared_ptr<T>, string>> worker_send;
     std::vector<listen_routes> routes;
-
     std::shared_ptr<T> tcpControl;
     std::shared_ptr<HTTP_QUERY> qProcess = nullptr;
 
-    std::mutex victoria;
-    std::mutex victor;
-    std::mutex macaco;
-
-    std::condition_variable condition_one;
-    std::condition_variable condition_response;
-    std::condition_variable condition_access;
-
     uint16_t PORT{enums::neo::eSize::DEF_PORT};
+
+    std::mutex lock_push;
+    std::mutex lock_send;
+    std::mutex lock_process;
 
     void tcpInt();
 
 public:
     [[maybe_unused]] explicit Neody(uint16_t port);
     explicit Neody();
-    ~Neody(){ delete wInstances; }
+    ~Neody(){ delete eWorkers; }
 
     int http_response(string, xcallargs, string optional);
     [[maybe_unused]] int get(string, xcallargs);
@@ -150,36 +132,38 @@ template <class T>
 template <class T>
 void Neody<T>::listen() {
 
-    std::thread _main(wInstances->Main->getMainProcess(PORT, qProcess));
-    std::thread _response(wInstances->Send->getSendProcess(victor));
-    std::thread _worker(wInstances->Worker->getWorker(macaco, victor, victoria));
+    std::thread _main(eWorkers->Main->getMainProcess(qProcess));
+    std::thread _response(eWorkers->Send->getSendProcess(lock_send));
+
+    std::thread _worker1(eWorkers->Worker->getWorker(lock_process, lock_send, lock_push, wInstances->workers[0], wInstances->conditions[0]));
+    std::thread _worker2(eWorkers->Worker->getWorker(lock_process, lock_send, lock_push, wInstances->workers[1], wInstances->conditions[1]));
+    std::thread _worker3(eWorkers->Worker->getWorker(lock_process, lock_send, lock_push, wInstances->workers[2], wInstances->conditions[2]));
+
 
     _main.join();
     _response.join();
-    _worker.join();
+    _worker1.join();
 }
 
 
 template <class T>
 int Neody<T>::setPort(uint16_t _port) noexcept {
-    if (_port >= enums::neo::eSize::MIN_PORT) {
+    if (_port >= enums::neo::eSize::MIN_PORT)
         PORT = _port;
-    }
-    else {
+    else
         return enums::neo::eReturn::ERROR;
-    }
     return enums::neo::eReturn::OK;
 }
 
 template<class T>
 void Neody<T>::tcpInt() {
 
-    wInstances = new eWorkers<T>();
+    eWorkers = new ::eWorkers<T>();
+    wInstances = new ::wInstances<T>();
 
-    wInstances->Main = new workers::pMain_t<T>(tcpControl, condition_one, worker_one, macaco);
-    wInstances->Worker = new workers::Worker_t<T>(worker_one, qProcess, condition_one, worker_send, condition_response, routes);
-    wInstances->Send = new workers::Send_t<T>(worker_send, condition_response);
-
+    eWorkers->Main = new workers::pMain_t<T>(wInstances->workers, wInstances->conditions, tcpControl,  lock_process);
+    eWorkers->Send = new workers::Send_t<T>(wInstances->worker_send, wInstances->condition_response);
+    eWorkers->Worker = new workers::Worker_t<T>(qProcess, wInstances->worker_send, wInstances->condition_response, routes);
 
     tcpControl = make_shared<T>();
     tcpControl->setBuffer(BUFFER);
