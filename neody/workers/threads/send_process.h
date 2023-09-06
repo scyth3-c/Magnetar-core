@@ -44,6 +44,7 @@ namespace workers {
                                 it = worksend.erase(it);
 
                             } catch (std::exception &e) {
+                                std::cerr << e.what();
                                 it = worksend.erase(it);
                             }
                         }

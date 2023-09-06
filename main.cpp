@@ -3,7 +3,8 @@
 
 int main() {
 
-    Router router(3000);
+    Router router;
+    router.setPort(3000);
 
     std::string token = "12345";
 
