@@ -134,12 +134,12 @@ void Server::getResponseProcessing() {
     try {
         string base;
         vector<char> buffer;
-        buffer.reserve(*buffer_size);
+        buffer.resize(*buffer_size);
 
         size_t totalbyes = read(*socket_id, buffer.data(), *buffer_size);
 
         for (int it = 0; it <= totalbyes; it++) {
-            if (int(buffer[it]) == 0 && int(buffer[it]) == 0)
+            if (int(buffer[it]) == 0)
                 break;
             if(int(buffer[it]) == UnCATCH_ERROR_CH)
                 continue;
@@ -156,15 +156,24 @@ void Server::getResponseProcessing() {
     catch (const std::exception &e) { std::cerr << e.what() << '\n'; }
 }
 
-
-void Server::sendResponse(const string& _msg) {
-     std::cout.clear();
-     char* conten = (char *)_msg.c_str();
-     try {
-          if(strlen(conten) == 0) throw std::range_error("erro al obtener la respuesta");
-          send(*socket_id, conten, _msg.size(), 0);
-     }
-     catch (const std::exception &e) {
-          std::cerr << e.what() << '\n';
+void Server::setResponse(char buffer[DEF_BUFFER_SIZE]) {
+     std::string raw(buffer);
+     if(!raw.empty()) {
+          buffereOd_data = make_shared<string>(raw);
      }
 }
+
+void Server::sendResponse(const string& _msg) {
+     SendData data;
+     data.socket = *socket_id;
+     data.data = _msg;
+
+     epoll_event event;
+     event.events = EPOLLOUT | EPOLLET;
+     event.data.ptr = &data;
+
+     if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, *socket_id, &event) == -1) {
+          std::cerr << "Error al registrar evento de escritura: " << strerror(errno) << std::endl;
+     }
+}
+

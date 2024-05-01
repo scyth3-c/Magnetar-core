@@ -134,11 +134,7 @@ void Neody<T>::listen() {
 
     std::thread _main(eWorkers->Main->getMainProcess(qProcess));
     std::thread _response(eWorkers->Send->getSendProcess(lock_send));
-
     std::thread _worker1(eWorkers->Worker->getWorker(lock_process, lock_send, lock_push, wInstances->workers[0], wInstances->conditions[0]));
-//    std::thread _worker2(eWorkers->Worker->getWorker(lock_process, lock_send, lock_push, wInstances->workers[1], wInstances->conditions[1]));
-//    std::thread _worker3(eWorkers->Worker->getWorker(lock_process, lock_send, lock_push, wInstances->workers[2], wInstances->conditions[2]));
-
 
     _main.join();
     _response.join();

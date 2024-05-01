@@ -4,8 +4,10 @@
 
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/epoll.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
+#include <errno.h>
 #include <stdexcept>
 
 
@@ -73,30 +75,46 @@ class Engine {
         [[nodiscard]] virtual string getResponse() const = 0;
 };
 
+struct SendData {
+    int socket;
+    std::string data;
+};
 
-class Server : public Engine {
+class Server final : public Engine {
   private:
 
      shared_ptr<string> buffereOd_data;
      shared_ptr
                <int> static_sessions = make_shared<int>(10);
+    int epoll_fd, notices;
+
+    std::vector<epoll_event> events;
 
   public:
      
-     explicit Server(uint16_t Port) : Engine(Port){}
-     Server() : Engine(DEFAULT_PORT){}
-
+     explicit Server(uint16_t const Port) : Engine(Port), epoll_fd(-1), notices(-1) {}
+     Server() : Engine(DEFAULT_PORT), epoll_fd(-1), notices(-1){}
 
     void getResponseProcessing() override;
      int on() override;
      int Close() override;
 
-    [[maybe_unused]] inline int getDescription() {  return *socket_id;  }
+    [[maybe_unused]] inline int getDescription() const {  return *socket_id;  }
     [[maybe_unused]] inline shared_ptr<int> getSocketId() { return socket_id; }
-    [[maybe_unused]] inline void setSocketId(int identity) { socket_id.reset(new int(identity)); }
+    [[maybe_unused]] inline void setSocketId(int const identity) { socket_id.reset(new int(identity)); }
 
      void setSessions(int);
      void sendResponse(const string&);
+     void setResponse(char buffer[DEF_BUFFER_SIZE]);
+
+     inline void setEpollEvents(std::vector<epoll_event> const &e){events = e;}
+     inline void setEpollfd(int const arg) noexcept { epoll_fd = arg; }
+     inline void setNotices(int const arg) noexcept { notices = arg;  }
+
+     inline std::vector<epoll_event> getEpollEvents() const {return events; }
+     inline int getEpollfd() const {return epoll_fd;}
+     inline int getNotices() const {return notices;}
+
 
      static int setNonblocking(const int&);
 
@@ -154,7 +172,6 @@ struct HEADERS_MG {
 };
 
 [[maybe_unused]] typedef HEADERS_MG<string> Headers;
-
 
 [[maybe_unused]] constexpr const char* const HTTP_ERROR = "HTTP/1.1 400 BAD\n"
                            "Server: Neody/0.5\n"

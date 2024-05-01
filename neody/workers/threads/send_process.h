@@ -27,6 +27,7 @@ namespace workers {
         inline auto getSendProcess(std::mutex &victor){
             return [&]()->void {
                 while(enums::neo::eStatus::START){
+                    // MAIN THREAD LOOP
                     {
                         std::unique_lock<std::mutex> lock(victor);
                         condition_response.wait(lock);
@@ -37,7 +38,9 @@ namespace workers {
                         for(auto it = worksend.begin(); it != worksend.end();){
                             try {
                                 auto &[sender, data] = *it;
+
                                 sender->sendResponse(data);
+
                                 if (close(sender->getDescription()) < enums::neo::eReturn::OK) {
                                     throw std::range_error("error al tratar de cerrar el socket");
                                 }
@@ -49,7 +52,7 @@ namespace workers {
                             }
                         }
                     }
-                    neosys::process::_wait(10);
+
                 }
             };
         }

@@ -11,16 +11,16 @@
 #include <array>
 #include <condition_variable>
 #include <sys/socket.h>
-#include <sys/select.h>
+#include <sys/epoll.h>
 #include <netinet/in.h>
 #include <unistd.h>
-#include <fcntl.h>
 
 #include "../../utils/enums.h"
 #include "../../utils/sysprocess.h"
 
 constexpr int BUFFER = enums::neo::eSize::BUFFER;
 constexpr int SESSION = enums::neo::eSize::SESSION;
+constexpr int INIT_MAX_EVENTS = 10;
 
 namespace workers {
 
@@ -28,25 +28,18 @@ namespace workers {
     class pMain_t {
     private:
 
-        char in[255];
-        char out[255];
+        std::shared_ptr<T> &connection;
+        std::mutex &macaco;
 
-        int rsend, lwrite;
+                       int epoll_fd;
+        unsigned short int next_register;
 
-        struct sockaddr_in address{};
-        struct timeval timeout = {40,0};
-         fd_set  read_fd, write_fd;
-         int NewSocket, max_fd;
-         std::shared_ptr<T> &connection;
-         unsigned short int next_register{};
-         std::mutex &macaco;
-
+        std::vector<epoll_event> events;
 
        std::array<std::vector<std::shared_ptr<T>>, 0x3> &workers_base;
        std::array<std::condition_variable, 0x3> &conditions_base;
 
         inline void add_queue(shared_ptr<T> base) {
-
             if (next_register >= workers_base.size()) {
                         next_register = 0;
             }
@@ -58,12 +51,14 @@ namespace workers {
     public:
 
         explicit pMain_t(std::array<std::vector<std::shared_ptr<T>>, 0x3> &_workers_base, std::array<std::condition_variable, 0x3> &_conditions_base ,  std::shared_ptr<T> &conn, std::mutex& _macaco) :
-        workers_base(_workers_base ),
-        conditions_base(_conditions_base),
         connection(conn),
-        macaco(_macaco)
+        macaco(_macaco),
+        epoll_fd(epoll_create1(0)),
+        workers_base(_workers_base ),
+        conditions_base(_conditions_base)
         {
              next_register = enums::neo::eSize::DEF_REG;
+             events = std::vector<epoll_event>(INIT_MAX_EVENTS);
         }
 
         inline  auto getMainProcess(std::shared_ptr<HTTP_QUERY> &qProcess){
@@ -71,89 +66,95 @@ namespace workers {
 
                 // creacion del socket
                 connection->on();
+                int file_descriptor = connection->getDescription();
 
-                // temp
-                memset(&in,0, 255);
-                memset(&out, 0, 255);
-                //temp
+                if(Server::setNonblocking(file_descriptor) == MG_ERROR){
+                    close(file_descriptor);
+                }
 
+                if (epoll_fd == -1) {
+                    throw std::range_error("epoll_create1");
+                }
 
+                epoll_event event;
+                event.events = EPOLLIN;
+                event.data.fd = file_descriptor;
+
+                if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, file_descriptor, &event) == -1) {
+                    close(epoll_fd);
+                    throw std::range_error("epoll_ctl");
+                }
 
                 while (enums::neo::eStatus::START){
                     try {
-
                         qProcess = make_shared<HTTP_QUERY>();
 
-                        FD_ZERO(&read_fd);
-                        FD_ZERO(&write_fd);
-                        FD_SET(connection->getDescription(), &read_fd);
-                        FD_SET(connection->getDescription(), &write_fd);
-                        FD_SET(STDIN_FILENO, &read_fd);
-                        FD_SET(STDIN_FILENO, &write_fd);
-
-                        max_fd = connection->getDescription();
-
-                        int activity = select(max_fd+ 1, &read_fd, &write_fd, (fd_set*)0, &timeout);
-                        if (activity < 0){
-                            static_assert("boom");
-                            neosys::process::_wait(10);
-                            continue;
+                        int notice = epoll_wait(epoll_fd, events.data(), INIT_MAX_EVENTS, -1);
+                        if (notice == -1) {
+                            std::cerr << "epoll_wait: "<< strerror(errno) << std::endl;
+                            break;
                         }
 
-                        NewSocket = accept(connection->getDescription(),
-                                           (struct sockaddr *) &connection->address,
-                                           (socklen_t *) &connection->address);
+                        for( int i = 0; i < notice; i++) {
+                            if(events[i].data.fd == file_descriptor) {
 
-
-                       if (NewSocket < 0){
-                            neosys::process::_wait(10);
-                            continue;
-                        }
-
-                        if(Server::setNonblocking(NewSocket) == MG_ERROR){
-                            close(NewSocket);
-                            neosys::process::_wait(10);
-                            continue;
-                        }
-                            if(FD_ISSET(NewSocket, &read_fd)){
-                                FD_CLR(NewSocket, &read_fd);
-                                memset(&in, 0, 255);
-                                rsend = recv(NewSocket, in, 255, 0);
-                                if (rsend <= 0){
-                                    close(NewSocket);
-                                    break;
-                                } else if(in[0] != '\0') {
-                                    std::cout << "datos:" << in << std::endl;
+                                sockaddr_in client_addr;
+                                socklen_t  client_adrr_len = sizeof(client_addr);
+                                int client_file_descriptor = accept(file_descriptor, reinterpret_cast<sockaddr*>(&client_addr), &client_adrr_len);
+                                if(client_adrr_len == -1) {
+                                    continue;
                                 }
-                                if (FD_ISSET(STDIN_FILENO, &read_fd)){
-                                    fgets(out, 255, stdin);
-                                    if (FD_ISSET(STDIN_FILENO, &write_fd)){
-                                        FD_CLR(NewSocket, &write_fd);
-                                        send(NewSocket, out, 255, 0);
-                                        memset(&out, 0, 255);
+                                Server::setNonblocking(client_file_descriptor);
+
+                                event.events = EPOLLIN | EPOLLET;
+                                event.data.fd = client_file_descriptor;
+                                if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_file_descriptor, &event) == -1) {
+                                    std::cerr << "epoll_ctl: client:  "<< strerror(errno) << std::endl;
+                                    close(client_file_descriptor);
+                                    continue;
+                                }
+                            } else {
+                                char buffer[DEF_BUFFER_SIZE] = {0};
+                                int bytes = recv(events[i].data.fd, buffer, sizeof(buffer), 0);
+
+                                if (bytes == -1) {
+                                    if (bytes == EWOULDBLOCK) {
+                                        continue;
                                     }
+                                    std::cerr << "epoll_ctl: client:  "<< strerror(errno) << std::endl;
+                                    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd, nullptr);
+                                    close(events[i].data.fd);
+                                    continue;
+
+                                } else if(bytes == 0) {
+                                    epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd, nullptr);
+                                    close(events[i].data.fd);
+                                } else {
+
                                 }
-//                                shared_ptr<T> base = std::make_shared<T>();
-//                                base->setPort(connection->getPort());
-//                                base->setSocketId(NewSocket);
-//                                base->getResponseProcessing();
-//
-//                                std::cout << base->getSocketId() << std::endl;
-//
-//                                add_queue(base);
+
+                                shared_ptr<T> base = std::make_shared<T>();
+                                base->setPort(connection->getPort());
+                                base->setSocketId(events[i].data.fd);
+                                base->setResponse(buffer);
+
+                                base->setEpollEvents(events);
+                                base->setEpollfd(epoll_fd);
+                                base->setNotices(notice);
+
+                                add_queue(base);
 
                             }
-
+                        }
                     }
 
                     catch(const std::exception& e) {
                         std::cerr << e.what() << '\n';
-                        if(close(connection->getDescription()) < 0)
-                         throw std::range_error("error al cerrar conexion principal");
+                        close(epoll_fd);
+                        if(close(file_descriptor) < 0)
+                         throw std::range_error("main_process");
                     }
                 }
-                if(close(connection->getDescription()) < 0)
-                    std::range_error("error al cerrar conexion principal");
             };
         }
     };
