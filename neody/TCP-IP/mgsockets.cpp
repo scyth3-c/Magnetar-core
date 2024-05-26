@@ -1,23 +1,6 @@
 #include "mgsockets.h"
 
-Engine::Engine(uint16_t _xport) {
-     PORT = make_shared<uint16_t>(_xport);
-}
-
-int Engine::create() {
-     try {
-          if ((socket_id = make_shared<int>(
-                  socket(DOMAIN, TYPE, PROTOCOL))) < 0) {
-               throw std::range_error("Fallo al crear el socket");
-          }
-          return *socket_id;
-     }
-     catch (const std::exception &e) {
-          std::cerr << e.what() << '\n';
-          return MG_ERROR;
-     }
-}
-
+Engine::Engine(uint16_t _xport) : PORT(_xport) {}
 
 int Server::Close() {
      try {   
@@ -33,26 +16,10 @@ int Server::Close() {
      }
 }
 
-
-
-int Client::Close() {
-     try {
-          if (close(*socket_fd) < 0) {
-               throw std::range_error("Fallo al cerrar el socket, Client");
-          }
-          return MG_OK;
-     }
-     catch (const std::exception &e) {
-          std::cerr << e.what() << '\n';
-          return MG_ERROR;
-     }
-}
-
-
 int Engine::setPort(uint16_t xPort) {
      try {
-          PORT.reset(new uint16_t(xPort));
-          if(!*PORT) throw std::range_error("error al asignar el puerto");
+          PORT =  xPort;
+          if(!PORT) throw std::range_error("error al asignar el puerto");
           return MG_OK;
      }
      catch (const std::exception &e) {
@@ -61,10 +28,10 @@ int Engine::setPort(uint16_t xPort) {
      }
 }
 
-int Engine::getPort() {
+int Engine::getPort() const {
      try {
-          if (*PORT == 0)  {
-               return *PORT;
+          if (PORT > 0)  {
+               return PORT;
           }
           else {
                throw std::range_error("error al intentar obtener el puerto");
@@ -109,142 +76,129 @@ void Server::setSessions(int max) {
      }
 }
 
-int Server::on(function<void(string*)>optional) {
-     try {
-          lock_guard.lock();
-          if (setsockopt(*socket_id,
-                         SOL_SOCKET,
-                         SO_REUSEADDR |
-                             SO_REUSEPORT,
-                         &*option_mame,
-                         sizeof(*option_mame)) != 0x0) {
-               throw std::range_error("error al establecer el servidor");
-          }
-          address.sin_family = AF_INET;
-          address.sin_addr.s_addr = INADDR_ANY;
-          address.sin_port = htons(*PORT);
+int Server::setNonblocking(const int& socket_id) {
+        int flags = fcntl(socket_id, F_GETFL, 0);
+        if (flags == -1){
+            return MG_ERROR;
+        }
+        if (fcntl(socket_id, F_SETFL, flags | O_NONBLOCK) < 0){
+            return MG_ERROR;
+        }
+        return MG_OK;
+}
 
-          if (bind(*socket_id, (struct sockaddr *)&address, sizeof(address)) < 0) {
+
+int Server::on() {
+     try {
+
+
+         if ((socket_id = make_shared<int>(
+                 socket(DOMAIN, TYPE, PROTOCOL))) == nullptr) {
+             throw std::range_error("Fallo al crear el socket");
+         }
+
+         if (setsockopt(*socket_id,
+                        SOL_SOCKET,
+                        SO_REUSEADDR |
+                        SO_REUSEPORT,
+                        &*option_mame,
+                        sizeof(*option_mame)) != 0x0) {
+             throw std::range_error("error al establecer el servidor");
+         }
+
+         if(setNonblocking(*socket_id) == MG_ERROR)
+             throw std::runtime_error("Error al establecer el socket principal como no bloqueante");
+
+         address.sin_family = AF_INET;
+         address.sin_addr.s_addr = INADDR_ANY;
+         address.sin_port = htons(PORT);
+
+         unlink("127.0.0.1");
+         if (bind(*socket_id, (struct sockaddr *)&address, sizeof(address)) < 0) {
                throw std::range_error("error al enlazar el servidor");
           }
-          if (listen(*socket_id, *static_sessions) < 0x0) {
-               throw std::range_error("error al escuchar el puerto");
+         if (listen(*socket_id, 3) < 0x0) {
+              throw std::range_error("error al escuchar el puerto");
           }
-          if ((new_socket = make_shared<int>(
-                   accept(*socket_id,
-                          (struct sockaddr *)&address,
-                          (socklen_t *)&address_len))) < 0x0) {
-               throw std::range_error("error al conectar el servidor");
-          }
-               getResponseProcessing();
-          optional(buffereOd_data.get());
-          lock_guard.unlock();
-          return MG_OK;
+
+         return MG_OK;
      }
      catch (const std::exception &e) {
           std::cerr << e.what() << '\n';
+          lock_guard.unlock();
           return MG_ERROR;
      }
 }
-
-
 
 void Server::getResponseProcessing() {
-     try {
-          string base{};
-          vector<char> buffer = {'1'};
+    try {
+        string base;
+        vector<char> buffer;
+        buffer.resize(*buffer_size);
 
-          buffer.reserve(*buffer_size);
-          read(*new_socket, buffer.data(), *buffer_size);
+        size_t totalbyes = read(*socket_id, buffer.data(), *buffer_size);
 
-          for (int it = 0; it <= *buffer_size; it++) {
-              if (int(buffer[it]) == 0 && int(buffer[it]) == 0x0)
-                  break;
-              if(int(buffer[it]) == UnCATCH_ERROR_CH)
-                  continue;
-              if (int(buffer[it]) == 0xA)
-                  continue;
-               base += buffer[it];
-          }
+        for (int it = 0; it <= totalbyes; it++) {
+            if (int(buffer[it]) == 0)
+                break;
+            if(int(buffer[it]) == UnCATCH_ERROR_CH)
+                continue;
+            if (int(buffer[it]) == 10)
+                continue;
+            base += buffer[it];
+        }
 
-          if(base.empty()) throw std::range_error("error, el mensaje no se recibio");
-          buffereOd_data = make_shared<string>(base);
-     }
-     catch (const std::exception &e) {
-          std::cerr << e.what() << '\n';
-     }
+        std::cout <<  "base: "<< base << std::endl;
+
+        if(base.empty()) throw std::range_error("error, el mensaje no se recibio");
+        buffereOd_data = make_shared<string>(base);
+    }
+    catch (const std::exception &e) { std::cerr << e.what() << '\n'; }
 }
 
+void Server::setResponse(char buffer[DEF_BUFFER_SIZE]) {
+     std::string raw(buffer);
+     if(!raw.empty()) {
+          buffereOd_data = make_shared<string>(raw);
+     }
+}
 
 void Server::sendResponse(const string& _msg) {
-     std::cout.clear();
-     char* conten = (char *)_msg.c_str();
-     try {
-          if(strlen(conten) == 0) throw std::range_error("erro al obtener la respuesta");
-          send(*new_socket, conten, _msg.size(), 0);
+     SendData data;
+     data.socket = *socket_id;
+     data.data = _msg;
+
+     epoll_event event;
+     event.events = EPOLLOUT | EPOLLET;
+     event.data.ptr = &data;
+
+     if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, *socket_id, &event) == -1) {
+          std::cerr << "Error al registrar evento de escritura: " << strerror(errno) << std::endl;
      }
-     catch (const std::exception &e) {
-          std::cerr << e.what() << '\n';
+
+     epoll_event events[1];
+
+     int n = epoll_wait(epoll_fd, events, 1, -1);
+     if(n == -1) {
+          std::cerr << "epoll_wait" << strerror(errno) << std::endl;
+          return;
      }
-}
 
-void Client::getResponseProcessing() {
-     
-          string receptor;
-          vector<char> buffer = {};
-          buffer.reserve(*buffer_size);
-
-          read(*socket_id, buffer.data(), *buffer_size);
-
-          for (int it = 0; it <= *buffer_size; it++) {
-              if (int(buffer[it]) == 0 && int(buffer[it]) == 0)
-                  break;
-               if (int(buffer[it] == UnCATCH_ERROR_CH))
-                    continue;
-               receptor += buffer[it];
+     if(events[0].events & EPOLLOUT) {
+       int bytesw =  send(data.socket, data.data.c_str(), data.data.size(), 0);
+          if (bytesw == -1) {
+               std::cerr << "Error: Sending data" << std::endl;
+               epoll_ctl(epoll_fd, EPOLL_CTL_DEL, data.socket, nullptr);
+               close(data.socket);
+          } else if(bytesw == 0) {
+               epoll_ctl(epoll_fd, EPOLL_CTL_DEL, data.socket, nullptr);
+               close(data.socket);
+          } else {
+               epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data.socket, &events[0]);
           }
-          if(receptor.empty()) throw std::range_error("error, el mensaje no se recibio");
-          buffereOd_data = make_shared<string>(receptor);
-}
-
-int Client::on(function<void(string*)>optional) {
-     try {
-          address.sin_family = AF_INET;
-          address.sin_port = htons(*PORT);
-          char *IP =  (char *)IP_ADDRRESS->c_str();
-          if (inet_pton(AF_INET, IP, &address.sin_addr) <= 0) {
-               return MG_ERROR; // throw "error, invalid address";
-          }
-          *socket_fd = connect(*socket_id, (struct sockaddr *)&address, sizeof(address));
-          if(message->empty()) throw std::range_error("error mensaje del cliente vacio");
-          send(*socket_id, message->c_str(), std::strlen(message->c_str()), 0);
-          getResponseProcessing();
-          optional(buffereOd_data.get());
-          return MG_OK;
      }
-     catch (const std::exception &e) {
-          std::cerr << e.what() << '\n';
-          return MG_ERROR;
-     }
-}
 
 
-void Client::setIP(const string& _ip) {
-     try {
-          IP_ADDRRESS.reset(new string(_ip));
-          if(*IP_ADDRRESS != _ip) throw std::range_error("error al establecer la IP");
-     }
-     catch (const std::exception &e) {
-          std::cerr << e.what() << '\n';
-     }
+
 }
 
-[[maybe_unused]] void Client::setMessage(const string& conten) {
-     try {
-          message.reset(new string(conten));
-          if(*message != conten) throw std::range_error("error al establecer el mensaje");
-     }
-     catch (const std::exception &e) {
-          std::cerr << e.what() << '\n';
-     }
-}

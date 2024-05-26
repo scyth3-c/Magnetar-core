@@ -5,13 +5,10 @@
 #ifndef MAGNETAR_CORE_WINSTANCES_H
 #define MAGNETAR_CORE_WINSTANCES_H
 
-
-#include "../HTTP/routes/routes.hpp"
 #include "../processing/parameters/parameter_proccess.h"
 
 #include <vector>
 #include <memory>
-#include <mutex>
 #include <array>
 #include <condition_variable>
 
@@ -30,8 +27,6 @@ namespace  workers {
         std::condition_variable condition_response;
         std::condition_variable condition_access;
     };
-
-
 }
 
 #endif //MAGNETAR_CORE_WINSTANCES_H

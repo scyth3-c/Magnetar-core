@@ -4,7 +4,10 @@
 
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <sys/epoll.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
+#include <errno.h>
 #include <stdexcept>
 
 
@@ -24,12 +27,11 @@ using std::make_shared;
 using std::vector;
 using std::function;
 
-constexpr const char* LOCALHOST = "127.0.0.1";
 constexpr uint16_t DEFAULT_PORT = 0xBB8;
 
 constexpr int DOMAIN = AF_INET;
 constexpr int TYPE = SOCK_STREAM;
-constexpr int PROTOCOL = 0x0;
+constexpr int PROTOCOL = 0;
 
 constexpr int MG_ERROR = -0x1;
 constexpr int MG_OK = 0x0;
@@ -45,89 +47,81 @@ class Engine {
    protected:
 
         std::mutex lock_guard;
-        struct sockaddr_in address{};
-        shared_ptr<uint16_t> PORT = nullptr;
+        std::mutex response_guard;
+        uint16_t PORT;
         shared_ptr 
                    <int> 
                          socket_id = nullptr,
-                         new_socket = nullptr,
                          state_receptor = nullptr,
                          address_len = make_shared<int>(sizeof(address)),
                          option_mame = make_shared<int>(0x1),
                          buffer_size = make_shared<int>(DEF_BUFFER_SIZE);
     public:
 
+        struct sockaddr_in address{};
         explicit Engine(uint16_t);
         virtual ~Engine() = default;
 
-        int create();
 
     [[maybe_unused]] int
              setBuffer(int),
-             setHeapLimit(int),
-             getHeapLimit(),
              setPort(uint16_t),
-             getPort();
-        
+             getPort() const;
+
+        virtual int on() = 0;
         virtual void getResponseProcessing() = 0;
-        virtual int on(function<void(string*)>optional = [](string*)->void{}) = 0;
 
         [[maybe_unused]] virtual int Close() = 0;
         [[nodiscard]] virtual string getResponse() const = 0;
 };
 
+struct SendData {
+    int socket;
+    std::string data;
+};
 
-
-class Server : public Engine {
+class Server final : public Engine {
   private:
 
      shared_ptr<string> buffereOd_data;
      shared_ptr
-               <int> static_sessions = make_shared<int>(1);
+               <int> static_sessions = make_shared<int>(10);
+    int epoll_fd, notices;
+
+    std::vector<epoll_event> events;
 
   public:
      
-     explicit Server(uint16_t Port) : Engine(Port){}
-     Server() : Engine(DEFAULT_PORT){}
+     explicit Server(uint16_t const Port) : Engine(Port), epoll_fd(-1), notices(-1) {}
+     Server() : Engine(DEFAULT_PORT), epoll_fd(-1), notices(-1){}
 
-     int on(function<void(string* clust)>optional = [](string*)->void{}) override;
+    void getResponseProcessing() override;
+     int on() override;
      int Close() override;
-    [[maybe_unused]] inline int getDescription() {  return *socket_id;  }
+
+    [[maybe_unused]] inline int getDescription() const {  return *socket_id;  }
+    [[maybe_unused]] inline shared_ptr<int> getSocketId() { return socket_id; }
+    [[maybe_unused]] inline void setSocketId(int const identity) { socket_id.reset(new int(identity)); }
+
      void setSessions(int);
      void sendResponse(const string&);
-     void getResponseProcessing() override;
+     void setResponse(char buffer[DEF_BUFFER_SIZE]);
+
+     inline void setEpollEvents(std::vector<epoll_event> const &e){events = e;}
+     inline void setEpollfd(int const arg) noexcept { epoll_fd = arg; }
+     inline void setNotices(int const arg) noexcept { notices = arg;  }
+
+     inline std::vector<epoll_event> getEpollEvents() const {return events; }
+     inline int getEpollfd() const {return epoll_fd;}
+     inline int getNotices() const {return notices;}
+
+
+     static int setNonblocking(const int&);
 
      [[nodiscard]] inline string getResponse()  const override {
            return *buffereOd_data;
       }
 };
-
-
-class [[maybe_unused]] Client : public Engine {
-
-     private: 
-        shared_ptr
-                    <string> message = make_shared<string>();
-        shared_ptr
-                    <int> socket_fd = make_shared<int>();
-        shared_ptr
-                    <string> IP_ADDRRESS = make_shared<string>();
-        shared_ptr
-                    <string> buffereOd_data = nullptr;
-
-     public:
-    [[maybe_unused]] explicit Client(uint16_t Port) : Engine(Port){}
-          Client() : Engine(DEFAULT_PORT){}
-
-     int on(function<void(string*)>optional = [](string*)->void{}) override;
-     int Close() override;
-
-    [[maybe_unused]] void setMessage(const string&);
-    [[maybe_unused]] void setIP(const string& ip = LOCALHOST);
-     void getResponseProcessing() override;
-     [[nodiscard]] inline std::string getResponse() const override { return  *buffereOd_data; }
-};
-
 
 
 [[maybe_unused]] constexpr const char* const HTML = "text/html; charset=utf-8 ";
@@ -178,7 +172,6 @@ struct HEADERS_MG {
 };
 
 [[maybe_unused]] typedef HEADERS_MG<string> Headers;
-
 
 [[maybe_unused]] constexpr const char* const HTTP_ERROR = "HTTP/1.1 400 BAD\n"
                            "Server: Neody/0.5\n"

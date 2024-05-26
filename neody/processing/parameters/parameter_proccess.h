@@ -22,10 +22,8 @@ constexpr const char* PLAIN_TEXT = "text/plain";
 #include <algorithm>
 #include <memory>
 #include <string>
-#include <cctype>
 
 #include "../../HTTP/request/request.hpp"
-
 
 using std::string;
 using std::make_shared;
@@ -33,7 +31,6 @@ using std::shared_ptr;
 
 class HTTP_QUERY
 {
-private:
      size_t max_iterator{50};
      shared_ptr<string> route = nullptr;
 
@@ -50,6 +47,5 @@ public:
    [[nodiscard]] static std::pair<string, string> route_refactor(string);
    [[nodiscard]] static string trim(string);
 };
-
 
 #endif //PARAM_PROCESSING_HPP

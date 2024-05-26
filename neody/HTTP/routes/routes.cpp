@@ -1,10 +1,6 @@
 #include "routes.hpp"
 
-#include <utility>
-
-
 dataRender * Query::_cache = nullptr;
-
 
 string  Query::getData() const noexcept                   {     return last;        }
 bool    Query::getNext() const noexcept                   {     return nexteable;   }
@@ -25,48 +21,39 @@ void  Query::send(const string& _txt,  const std::function<void()>& callback) no
      callback();
 }
 
-
-
-void Query::json(const string& _txt, int status, const std::function<void()>& callback) noexcept {
+void Query::json(const string& _txt, const int status, const std::function<void()>& callback) noexcept {
     last = utility_t::prepare_basic(_txt, "application/json", headers, std::to_string(status));
     callback();
 }
-void Query::html(const string& _txt, int status,  const std::function<void()>& callback) noexcept {
+void Query::html(const string& _txt, const int status,  const std::function<void()>& callback) noexcept {
     last = utility_t::prepare_basic(_txt, "text/html", headers,  std::to_string(status));
     callback();
 }
-void  Query::send(const string& _txt, int status,  const std::function<void()>& callback) noexcept {
+void  Query::send(const string& _txt,const int status,  const std::function<void()>& callback) noexcept {
      last = utility_t::prepare_basic(_txt, "text/plain", headers,  std::to_string(status));
      callback();
 }
 
 
-void  Query::readFile(string path,const string& type, const std::function<void()>& callback) noexcept {
-
-    BasicRead reader;
-    last = utility_t::prepare_basic(reader.processing(std::move(path)), type, headers);
-    reader.~BasicRead();
+void  Query::readFile(const string& path,const string& type, const std::function<void()>& callback) noexcept {
+    last = utility_t::prepare_basic(BasicRead::processing(path), type, headers);
     callback();
 }
 
-void  Query::readFileX(string path,const string& type, const std::function<void()>& callback) noexcept {
-    CppReader reader;
-    last = utility_t::prepare_basic(reader.processing(std::move(path)), type, headers);
-    reader.~CppReader();
+void  Query::readFileX(const string& path,const string& type, const std::function<void()>& callback) noexcept {
+    last = utility_t::prepare_basic(CppReader::processing(path), type, headers);
     callback();
 }
 
-void  Query::compose(string path, int reserve, const std::function<void()>& callback) noexcept {
-    MgReader reader;
-    last = utility_t::prepare_basic(reader.processing(std::move(path), reserve), "text/html" , headers);
-    reader.~MgReader();
+void  Query::compose(const string& path, const int reserve, const std::function<void()>& callback) noexcept {
+    last = utility_t::prepare_basic(MgReader::processing(path, reserve), "text/html" , headers);
     callback();
 }
 
-void  Query::render(string path, const std::function<dataRender(dataRender& data)>& callback) noexcept {
+void  Query::render(const string& path, const std::function<dataRender(dataRender& data)>& callback) noexcept {
 
-std::unique_ptr<dataRender> tasty_temp = std::make_unique<dataRender>(callback);
-last = utility_t::prepare_basic(tasty_temp->render(std::move(path)), "text/html", headers);
+auto tasty_temp = std::make_unique<dataRender>(callback);
+last = utility_t::prepare_basic(tasty_temp->render(path), "text/html", headers);
 tasty_temp.reset();
 }
 
