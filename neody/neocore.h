@@ -32,8 +32,6 @@ class Neody {
 
     uint16_t PORT{enums::neo::eSize::DEF_PORT};
 
-    std::mutex lock_push;
-    std::mutex lock_send;
     std::mutex lock_process;
 
     void tcpInt();
@@ -136,6 +134,8 @@ template <class T>
 int Neody<T>::setPort(uint16_t _port) noexcept {
     if (_port >= enums::neo::eSize::MIN_PORT)
         PORT = _port;
+        if(tcpControl != nullptr)
+            tcpControl->setPort(PORT);
     else
         return enums::neo::eReturn::ERROR;
     return enums::neo::eReturn::OK;

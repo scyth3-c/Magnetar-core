@@ -2,8 +2,8 @@
 // Created by scythe on 5/07/23.
 //
 
-#ifndef DEPLOYOCEAN_ENUMS_H
-#define DEPLOYOCEAN_ENUMS_H
+#ifndef NEODY_ENUMS_H
+#define NEODY_ENUMS_H
 
 namespace enums {
 
@@ -30,4 +30,4 @@ namespace enums {
 
 } // enums
 
-#endif //DEPLOYOCEAN_ENUMS_H
+#endif //NEODY_ENUMS_H
