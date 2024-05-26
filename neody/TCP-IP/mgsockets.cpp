@@ -175,5 +175,30 @@ void Server::sendResponse(const string& _msg) {
      if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, *socket_id, &event) == -1) {
           std::cerr << "Error al registrar evento de escritura: " << strerror(errno) << std::endl;
      }
+
+     epoll_event events[1];
+
+     int n = epoll_wait(epoll_fd, events, 1, -1);
+     if(n == -1) {
+          std::cerr << "epoll_wait" << strerror(errno) << std::endl;
+          return;
+     }
+
+     if(events[0].events & EPOLLOUT) {
+       int bytesw =  send(data.socket, data.data.c_str(), data.data.size(), 0);
+          if (bytesw == -1) {
+               std::cerr << "Error: Sending data" << std::endl;
+               epoll_ctl(epoll_fd, EPOLL_CTL_DEL, data.socket, nullptr);
+               close(data.socket);
+          } else if(bytesw == 0) {
+               epoll_ctl(epoll_fd, EPOLL_CTL_DEL, data.socket, nullptr);
+               close(data.socket);
+          } else {
+               epoll_ctl(epoll_fd, EPOLL_CTL_MOD, data.socket, &events[0]);
+          }
+     }
+
+
+
 }
 

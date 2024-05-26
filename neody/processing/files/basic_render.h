@@ -11,21 +11,18 @@ using std::make_shared;
 using std::shared_ptr;
 
 class BasicRead {
-private:
     shared_ptr<std::ifstream> reader = nullptr;
 public:
     BasicRead() = default;
 
-    string processing(const string& path) {
-
-        reader = make_shared<std::ifstream>();
-        reader->open(path);
+    static string processing(const string& path) {
+        std::ifstream reader;
+        reader.open(path);
         string chunk;
         string body;
-        while(getline(*reader, chunk)){
+        while(getline(reader, chunk)){
             body += chunk;
         }
-        reader.reset();
         return body;
     }
     ~BasicRead()= default;

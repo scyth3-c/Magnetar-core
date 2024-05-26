@@ -6,12 +6,9 @@
 #include <fstream>
 #include <filesystem>
 #include <utility>
-#include <vector>
 #include "../../utils/notify.h"
 
 #include "local_utility.h"
-
-#define SHOW(X) std::cout << X << std::endl;
 
 using std::make_shared;
 using std::shared_ptr;
@@ -19,16 +16,12 @@ using std::string;
 
 class MgReader
 {
-private:
-    shared_ptr<std::ifstream> reader = nullptr;
-
 public:
     MgReader() = default;
     ~MgReader() = default;
 
-    inline string processing(string path, int reserve)
+    static string processing(const string &path, const int reserve)
     {
-
         size_t init = 0;
         string folder_base;
 
@@ -51,7 +44,7 @@ public:
         }
 
         string body = readFile(path);
-        string buffer;
+        string buffer{};
 
         for (int global = 0x0; global < reserve; global++)
         {
@@ -62,7 +55,7 @@ public:
         return body;
     }
 
-    inline string tratament(string &body, string &folder_base)
+     static string tratament(string &body, const string &folder_base)
     {
 
         std::pair<int, int> coord;
@@ -76,14 +69,14 @@ public:
             eye += body[it];
             eye += body[it + 1];
 
-            if (eye == _OPEN)
+            if (eye == OPEN)
             {
                 body[it] = char(0x20);
                 body[it + 1] = char(0x20);
                 coord.first = it + 0x2;
                 safe = 1;
             }
-            else if (eye == _CLOSE)
+            else if (eye == CLOSE)
             {
                 safe = 2;
                 body[it] = char(0x20);
@@ -116,24 +109,23 @@ public:
         return newest;
     }
 
-    inline string readFile(const string& target)
+     static string readFile(const string& target)
     {
 
-        reader = make_shared<std::ifstream>(target.c_str());
+       std::ifstream reader(target.c_str());
         string chunk;
         string module;
 
-        while (getline(*reader, chunk))
+        while (getline(reader, chunk))
         {
             module += chunk;
         }
         std::cout << std::flush;
-        reader->close();
-        reader.reset();
+        reader.close();
         return module;
     }
 
-    static inline string normalize(string target)
+    static  string normalize(string target)
     {
         string temp_box;
         for (char & i : target)

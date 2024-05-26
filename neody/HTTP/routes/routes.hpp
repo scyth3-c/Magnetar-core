@@ -4,7 +4,7 @@
 
 
 #include <string>
-#include <memory>
+
 #include <utility>
 #include <vector>
 #include <initializer_list>
@@ -16,7 +16,6 @@
 #include "../../processing/files/cpp_reader.h"
 #include "../../processing/files/mg_reader.h"
 #include "../../processing/files/data_render.h"
-#include "../../processing/files/neo_render.h"
 #include "../json/json.hpp"
 
 using std::string;
@@ -26,7 +25,7 @@ struct Headers_t {
     Headers_t()= default;
    [[maybe_unused]] Headers_t(std::initializer_list<P...>list): body(list) {}
     vector<string> body;
-    inline string generate(){
+    string generate(){
         string response;
         for (auto &it : body) {
             response += it + "\n";
@@ -38,9 +37,6 @@ typedef Headers_t<string> HEADERS;
 
 
 class Query {
-
-   private:
-   
     bool nexteable  { false};
     string response {"default"};
     string last;
@@ -68,10 +64,10 @@ class Query {
     [[maybe_unused]] void    json(const string&, const std::function<void()>& opcional=[]()->void{}) noexcept;
     [[maybe_unused]] void    html(const string&, const std::function<void()>& opcional=[]()->void{}) noexcept;
     [[maybe_unused]] void    send(const string&, const std::function<void()>& opcional=[]()->void{}) noexcept;
-    [[maybe_unused]] void    readFile(string,const string&, const std::function<void()>& opcional=[]()->void{}) noexcept;
-    [[maybe_unused]] void    readFileX(string,const string&, const std::function<void()>& opcional=[]()->void{}) noexcept;
-    [[maybe_unused]] void    compose(string,int, const std::function<void()>& opcional=[]()->void{}) noexcept;
-    [[maybe_unused]] void    render(string, const std::function<dataRender(dataRender&)>& opcional=[](dataRender&)->dataRender{ return *_cache; }) noexcept;
+    [[maybe_unused]] void    readFile(const string&,const string&, const std::function<void()>& opcional=[]()->void{}) noexcept;
+    [[maybe_unused]] void    readFileX(const string&,const string&, const std::function<void()>& opcional=[]()->void{}) noexcept;
+    [[maybe_unused]] void    compose(const string&,int, const std::function<void()>& opcional=[]()->void{}) noexcept;
+    [[maybe_unused]] void    render(const string&, const std::function<dataRender(dataRender&)>& opcional=[](dataRender&)->dataRender{ return *_cache; }) noexcept;
 
     // PARAMS:  CONTEN  STATUS OPTIONAL CALLBACK
     [[maybe_unused]] void    json(const string&, int, const std::function<void()>& opcional=[]()->void{}) noexcept;
@@ -79,8 +75,6 @@ class Query {
     [[maybe_unused]] void    send(const string&, int, const std::function<void()>& opcional=[]()->void{}) noexcept;
 
 };
-
-
 
 template <class... P>
 struct Core_init_t  {

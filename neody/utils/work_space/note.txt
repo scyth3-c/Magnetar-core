@@ -1,1 +1,1 @@
-in this folder, Neodimio works file operations
+in this folder, Neody works file operations

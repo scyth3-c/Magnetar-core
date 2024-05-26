@@ -1,5 +1,4 @@
 #include "neody/neocore.h"
-#include <iostream>
 
 int main() {
 
@@ -8,10 +7,8 @@ int main() {
 
     std::string token = "12345";
 
-
     // test
     // http://localhost:3000/verify?id=12345&nombre=neodimio
-
 
     router.get("/verify",{
 
@@ -46,7 +43,6 @@ int main() {
 
      }}
     );
-
 
 
     router.get("/",{ [&](Query &http) {

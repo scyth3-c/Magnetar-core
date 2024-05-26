@@ -1,7 +1,6 @@
 #ifndef DATA_RENDER_HPP
 #define DATA_RENDER_HPP
 
-#include <memory>
 #include <fstream>
 #include <string>
 #include <filesystem>
@@ -11,15 +10,12 @@
 
 class dataRender {
 
-private:
-    
-        shared_ptr<std::ifstream> reader = nullptr;
         vector<std::tuple<std::string, std::string>> variables = {};
 
 public:
 
     explicit dataRender(const std::function<dataRender(dataRender &data)>& _parser) {
-        dataRender temp_render = _parser(*this);
+        const dataRender temp_render = _parser(*this);
         variables = std::move(temp_render.getVariables());
     }
     ~dataRender() = default;
@@ -27,16 +23,16 @@ public:
     [[nodiscard]] inline std::vector<std::tuple<std::string, std::string>> getVariables() const
     { return variables; }
 
-    inline void operator()(const string& nombre, const string& valor) {
+     void operator()(const string& nombre, const string& valor) {
         variables.emplace_back(nombre,valor);
     }
 
-    inline std::string render(const string& path)  {
+     std::string render(const string& path)  {
 
         if(!std::filesystem::exists(path)) return notify_html::noFIle(path);        
 
         string body = readFile(path);
-        string buffer;
+        string buffer{};
 
         std::cout << std::flush;       
         for (size_t iterator = 0; iterator < variables.size(); iterator++) {
@@ -48,7 +44,7 @@ public:
 }
 
 
- inline string body_tratament(string &body) {
+     string body_tratament(string &body) {
 
          std::pair<int,int> coords;
          int guard = 0;
@@ -58,13 +54,13 @@ public:
             eye += body[iter];
             eye += body[iter+0x1];
 
-            if(eye == _OPEN_DATA) {
+            if(eye == OPEN_DATA) {
                 guard = 1;
                 body[iter] = char(0x20);
                 body[iter+1] = char(0x20);
                 coords.first = (int)iter+0x2;
 
-            }else if(eye == _CLOSE_DATA){
+            }else if(eye == CLOSE_DATA){
                 guard = 0;
                 body[iter] = char(0x20);
                 body[iter+1] = char(0x20);
@@ -94,25 +90,17 @@ public:
     } 
 
 
-    inline string readFile(const string& target) {
-
-        reader = make_shared<std::ifstream>(target.c_str());
+    static string readFile(const string& target) {
+        std::ifstream reader(target.c_str());
             string chunk;
             string module;
-        while (getline(*reader, chunk)) {
+        while (getline(reader, chunk)) {
              module += chunk;
-                
             }
-        reader->close();
-        reader.reset();
+        reader.close();
         return module; 
     }
 
-
-
-
 };
-
-
 
 #endif // ! DATA_RENDER_HPP

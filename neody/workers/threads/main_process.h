@@ -16,7 +16,7 @@
 #include <unistd.h>
 
 #include "../../utils/enums.h"
-#include "../../utils/sysprocess.h"
+#include "../../processing/parameters/parameter_proccess.h"
 
 constexpr int BUFFER = enums::neo::eSize::BUFFER;
 constexpr int SESSION = enums::neo::eSize::SESSION;
@@ -26,7 +26,6 @@ namespace workers {
 
     template<class T>
     class pMain_t {
-    private:
 
         std::shared_ptr<T> &connection;
         std::mutex &macaco;
@@ -35,27 +34,20 @@ namespace workers {
         unsigned short int next_register;
 
         std::vector<epoll_event> events;
+        std::vector<listen_routes> &routes;
 
        std::array<std::vector<std::shared_ptr<T>>, 0x3> &workers_base;
        std::array<std::condition_variable, 0x3> &conditions_base;
 
-        inline void add_queue(shared_ptr<T> base) {
-            if (next_register >= workers_base.size()) {
-                        next_register = 0;
-            }
-            workers_base[next_register].push_back(base);
-            {  conditions_base[next_register].notify_all(); macaco.unlock(); }
-            next_register++;
-        }
-
     public:
 
-        explicit pMain_t(std::array<std::vector<std::shared_ptr<T>>, 0x3> &_workers_base, std::array<std::condition_variable, 0x3> &_conditions_base ,  std::shared_ptr<T> &conn, std::mutex& _macaco) :
+        explicit pMain_t(std::array<std::vector<std::shared_ptr<T>>, 0x3> &_workers_base, std::array<std::condition_variable, 0x3> &_conditions_base ,  std::shared_ptr<T> &conn, std::mutex& _macaco, std::vector<listen_routes>& _routes) :
         connection(conn),
         macaco(_macaco),
         epoll_fd(epoll_create1(0)),
         workers_base(_workers_base ),
-        conditions_base(_conditions_base)
+        conditions_base(_conditions_base),
+        routes(_routes)
         {
              next_register = enums::neo::eSize::DEF_REG;
              events = std::vector<epoll_event>(INIT_MAX_EVENTS);
@@ -118,7 +110,7 @@ namespace workers {
                                 int bytes = recv(events[i].data.fd, buffer, sizeof(buffer), 0);
 
                                 if (bytes == -1) {
-                                    if (bytes == EWOULDBLOCK) {
+                                    if (errno == EWOULDBLOCK) {
                                         continue;
                                     }
                                     std::cerr << "epoll_ctl: client:  "<< strerror(errno) << std::endl;
@@ -131,19 +123,54 @@ namespace workers {
                                     close(events[i].data.fd);
                                 } else {
 
+                                    shared_ptr<T> base = std::make_shared<T>();
+
+                                    base->setPort(connection->getPort());
+                                    base->setSocketId(events[i].data.fd);
+                                    base->setResponse(buffer);
+                                    base->setEpollEvents(events);
+                                    base->setEpollfd(epoll_fd);
+                                    base->setNotices(notice);
+
+                                    std::pair<string, string>   actual_route;
+
+                                    string     send_target;
+                                    string      parametros;
+                                    bool        cantget = true;
+
+                                        string socket_response = base->getResponse();
+
+                                        if (socket_response.empty()){
+                                            throw std::range_error("FAILED TO READ REQUEST");
+                                        }
+
+                                        actual_route = qProcess->route_refactor(socket_response);
+
+                                        for (auto &it : routes) {
+
+                                            if (it.route.getType() == actual_route.first && it.route.getName() == actual_route.second) {
+
+                                                if (actual_route.first == GET_TYPE){
+                                                    parametros = qProcess->route_refactor_params_get(socket_response);
+                                                } else{
+                                                    parametros = qProcess->route_refactor_params(socket_response);
+                                                }
+
+                                                send_target = it.callbacks.execute(parametros);
+
+                                                cantget = false;
+
+                                                break;
+
+                                            }
+                                        }
+
+                                        base->sendResponse(cantget ? ERROR_GET : send_target);
+                                        if (close(base->getDescription()) < enums::neo::eReturn::OK) {
+                                            throw std::range_error("error al tratar de cerrar el socket");
+                                        }
+
                                 }
-
-                                shared_ptr<T> base = std::make_shared<T>();
-                                base->setPort(connection->getPort());
-                                base->setSocketId(events[i].data.fd);
-                                base->setResponse(buffer);
-
-                                base->setEpollEvents(events);
-                                base->setEpollfd(epoll_fd);
-                                base->setNotices(notice);
-
-                                add_queue(base);
-
                             }
                         }
                     }
