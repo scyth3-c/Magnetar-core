@@ -5,9 +5,8 @@
 constexpr const char* BASE = "#include <iostream> \n int main() { \n ";
 constexpr const char* NEOBASE = "#include \"neobase.h\" \n #include <iostream> \n int main() { \n ";
 
-constexpr const char* WORK_PATH = "./utils/work_space/temp_";
-constexpr const char* TEMPLATE_NEO = "./utils/work_space/base.html";
-constexpr char CODE_LOCATE = '#';
+constexpr const char* WORK_PATH = "./";
+constexpr char CODE_LOCATE = '$';
 
 constexpr const char* GPP_  = "g++ ";
 constexpr const char* CPP_  = ".cpp";
