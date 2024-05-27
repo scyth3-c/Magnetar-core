@@ -6,22 +6,23 @@ int main() {
     router.setPort(8080);
 
 
-    // root
+
     router.get("/",{ [&](Query &http) {
-        http.readFile("./index.html", "text/html");
+        http.readFile("./views/index.html", "text/html");
+    }});
+
+
+    router.get("/cpp",{ [&](Query &http) {
+        http.readFileX("./views/cpp.html", "text/html");
     }});
 
 
 
     std::string id = "22";
-    // http://localhost:3000/verify?id=22&nombre=kevin
 
     router.get("/verify",{
-
-        // method 1 - middleware
        [&](Query &http) {
 
-           // responses
            JSON_s error = {"error", "no id"};
            JSON_s invalid = {"error", "invalid"};
 
