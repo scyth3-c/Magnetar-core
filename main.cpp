@@ -6,7 +6,6 @@ int main() {
     router.setPort(8080);
 
 
-
     router.get("/",{ [&](Query &http) {
         http.readFile("./views/index.html", "text/html");
     }});
@@ -16,10 +15,19 @@ int main() {
         http.readFileX("./views/cpp.html", "text/html");
     }});
 
+    router.post("/headers",  {[&](Query &http) {
+        auto list = http.body.getParams();
+        http.send(list.get("kaio").value);
+    }});
+
+    router.get("/headers",  {[&](Query &http) {
+        auto list = http.body.getParams();
+        http.send(list.get("kaio").value);
+    }});
+
 
 
     std::string id = "22";
-
     router.get("/verify",{
        [&](Query &http) {
 
@@ -28,24 +36,20 @@ int main() {
 
            auto params = http.body.getParams();
 
-
-           if (!params.exist("id")) {
+           if (!params.exist("id"))
                http.json(error());
-           }
 
-           if (params.get("id").value == id){
+
+           if (params.get("id").value == id)
                http.next();
-            } else{
+           else
                http.json(invalid());
-            }
 
            },
-
-        // method 2
         [&](Query &http) {
 
              auto params = http.body.getParams();
-             string nombre = params.get("nombre").value;
+             auto nombre = params.get("nombre").value;
 
              if (nombre.length() > 5)
                 http.html("<h1> hola "+  nombre  +" </h1>");
@@ -54,8 +58,6 @@ int main() {
 
      }}
     );
-
-
 
 
     router.get("/user",{  [&](Query &http) {

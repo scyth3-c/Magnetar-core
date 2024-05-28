@@ -135,7 +135,7 @@ namespace workers {
                                     std::pair<string, string>   actual_route;
 
                                     string     send_target;
-                                    string      parametros;
+                                    string      parameters{};
                                     bool        cantget = true;
 
                                         string socket_response = base->getResponse();
@@ -151,13 +151,11 @@ namespace workers {
                                             if (it.route.getType() == actual_route.first && it.route.getName() == actual_route.second) {
 
                                                 if (actual_route.first == GET_TYPE){
-                                                    parametros = qProcess->route_refactor_params_get(socket_response);
+                                                    parameters = qProcess->route_refactor_params_get(socket_response);
                                                 } else{
-                                                    parametros = qProcess->route_refactor_params(socket_response);
+                                                    parameters = qProcess->route_refactor_params(socket_response);
                                                 }
-
-                                                send_target = it.callbacks.execute(parametros);
-
+                                                send_target = it.callbacks.execute(parameters);
                                                 cantget = false;
 
                                                 break;

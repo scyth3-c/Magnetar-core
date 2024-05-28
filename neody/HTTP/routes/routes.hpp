@@ -87,13 +87,13 @@ struct Core_init_t  {
     Query *remote_control{};
 
     [[nodiscard]] [[maybe_unused]] inline size_t size() const noexcept { return functions.size(); }
-inline string execute(const string& _raw) {
+     string execute(string _raw) {
         remote_control = new Query();
         string response{};
         for (size_t i = 0; i < functions.size(); i++) {
             remote_control->lock();
             remote_control->body.clearParams();
-            remote_control->body.setRawParametersData(_raw);
+            remote_control->body.setRawParametersData(std::move(_raw));
             functions[i](*remote_control);
             if(remote_control->getNext()) continue;
             else break;
