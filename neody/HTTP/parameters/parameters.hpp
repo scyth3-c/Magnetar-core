@@ -10,7 +10,6 @@ using std::string;
 using std::vector;
 
 class param_box{
-    private:
      std::pair<string,string> _body;
 
     public:
@@ -28,7 +27,6 @@ class param_box{
 
 
 class Param_t {
- private:
   vector<std::pair<string,string>> _list;
   
 public: 
@@ -43,12 +41,12 @@ public:
   void setConten(vector<std::pair<string,string>>&);
 
   [[maybe_unused]] inline void clear() { _list.clear(); }
-  [[maybe_unused]] inline bool empty(){return _list.empty();}
+  [[maybe_unused]] inline bool empty() const {return _list.empty();}
 
   [[maybe_unused]] bool exist(const string&);
 
   [[maybe_unused]] param_box get(const string&);
-  [[nodiscard]] inline vector<std::pair<string,string>> toArray(){return _list;}
+  [[nodiscard]] inline vector<std::pair<string,string>> toArray() const noexcept {return _list;}
 
 };
 

@@ -32,18 +32,16 @@ using std::shared_ptr;
 class HTTP_QUERY
 {
      size_t max_iterator{50};
-     shared_ptr<string> route = nullptr;
-
 public:
     HTTP_QUERY();
     ~HTTP_QUERY();
     
-   [[nodiscard]] string route_refactor_params(string);
+   [[nodiscard]] string route_refactor_params(string) const;
    [[nodiscard]] string route_refactor_params_get(string) const;
    [[nodiscard]] string get_params(string &, bool &) const;
-   [[nodiscard]] static string x_www_form_urlencoded(string &, const string& type = "");
+   [[nodiscard]] static string x_www_form_urlencoded(const string &, const string& type = "");
    [[nodiscard]] static string findContenType(string);
-   [[nodiscard]] string selectPerType(string &, string&, bool&) const;
+   [[nodiscard]] string selectPerType(string &,const string&, bool&) const;
    [[nodiscard]] static std::pair<string, string> route_refactor(string);
    [[nodiscard]] static string trim(string);
 };

@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <algorithm>
 #include "../parameters/parameters.hpp"
 
 using std::string;
@@ -12,10 +13,8 @@ using std::vector;
 constexpr const char* NOT_PARAMS = "___s";
 
 class Request {
-
-private:
   string route{};
-  vector<std::pair<string, string>> _parameters;
+  vector<std::pair<string, string>> _parameters{};
 
 public:
   Request();
@@ -28,7 +27,7 @@ public:
        route.clear();
    };
 
-  void setRawParametersData(string _raw_data);
+  void setRawParametersData(string &&);
 };
 
 #endif // ! REQUEST_HPP
