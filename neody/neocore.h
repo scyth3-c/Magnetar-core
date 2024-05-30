@@ -1,9 +1,9 @@
 #ifndef NEODIMIO_HPP
 #define NEODIMIO_HPP
 
-#include "TCP-IP/mgsockets.h"
-#include "HTTP/routes/routes.hpp"
-#include "HTTP/request/request.hpp"
+#include "tcp/mgsockets.h"
+#include "http/routes/routes.hpp"
+#include "http/request/request.hpp"
 #include "utils/enums.h"
 #include "workers/worker_core.h"
 #include "workers/wInstances.h"

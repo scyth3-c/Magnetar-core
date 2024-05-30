@@ -1,9 +1,7 @@
-app.cpp
-compile.sh
-BIN
 *.o
 *.d
 .idea/
 editor.xml
 modules.xml
 *.iml
+Neody

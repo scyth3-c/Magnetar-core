@@ -9,13 +9,13 @@ string HTTP_QUERY::x_www_form_urlencoded(const string &target, const string& typ
     for (size_t ti = target.length() - 0x1; ti > 0x0; ti--){
         if (target[ti] == ' ' || target[ti] == char(13))
             break;
-        params += target[ti];
+        params.push_back(target[ti]);
     }
     std::reverse(params.begin(), params.end());
     return type + params;
 }
 
-string HTTP_QUERY::selectPerType(string &target, const string &conten_type, bool &init) const {
+string HTTP_QUERY::selectPerType(const string &target, const string &conten_type, bool &init) const {
     if (conten_type == X_WWW_FORM) {
         init = true;
         return x_www_form_urlencoded(target);
@@ -27,7 +27,7 @@ string HTTP_QUERY::selectPerType(string &target, const string &conten_type, bool
     return get_params(target, init);
 }
 
-string HTTP_QUERY::route_refactor_params(string _target) const {
+string HTTP_QUERY::route_refactor_params(const string& _target) const {
 
     const string content_type = findContenType(_target);
     const string content_type_value = trim(content_type);
@@ -40,29 +40,43 @@ string HTTP_QUERY::route_refactor_params(string _target) const {
         return NOT_PARAMS;
 }
 
-string HTTP_QUERY::route_refactor_params_get(string rawresponse) const {
+string HTTP_QUERY::route_refactor_params_get(const string& rawresponse) const {
     bool init = false;
     return get_params(rawresponse, init);
 }
 
+string HTTP_QUERY::headers_from(const string& response)  {
+    string encoded{};
+    char fc = 0x0A;
+    for(size_t i = 0; i<response.size(); i++) {
+        if(response[i] == fc){
+            if(response[i+1]==fc)
+                break;
+            fc = '\0';
+            encoded.clear();
+        }
+            encoded.push_back(response[i]);
+    }
+    return encoded;
+}
 
 std::pair<string, string> HTTP_QUERY::route_refactor(string target){
     const size_t size = target.size();
     std::pair<string, string> route;
     bool init = false;
+    char space = 0x20;
 
-    for (auto &it : target){
-        if (it == char(32) || it == '/')
+    for (const auto &it : target){
+        if (it == space || it == '/')
             break;
-        route.first += it;
+        route.first.push_back(it);
     }
-
     for (size_t ui = 0; ui < size; ui++){
         if (init){
             if (target[ui] == '?' || target[ui] == 'H')
                 break;
             if (target[ui] != ' '){
-                route.second += target[ui];
+                route.second.push_back(target[ui]);
             }
         }
         else if (target[ui + 0x1] == '/'){
@@ -84,7 +98,7 @@ string HTTP_QUERY::findContenType(string text){
     if (index != std::string::npos) {
         index += target.length()  - 1;
         while (text[index] != char(0xd)) {
-            content_type += text[index];
+            content_type.push_back(text[index]);
             index++;
         }
         return content_type;
@@ -94,13 +108,13 @@ string HTTP_QUERY::findContenType(string text){
 }
 
 
-string HTTP_QUERY::get_params(string &target, bool &init) const{
+string HTTP_QUERY::get_params(const string &target, bool &init) const{
     string params{};
     for (size_t ui = 3; ui < target.size(); ui++){
         if (init){
             if (target[ui] == 'H' || target[ui] == ' ')
                 break;
-            params += target[ui];
+            params.push_back(target[ui]);
         }
         else if (target[ui] == '?' && ui <= max_iterator){
             init = true;

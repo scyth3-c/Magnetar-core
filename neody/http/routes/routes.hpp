@@ -1,7 +1,6 @@
 #pragma once
-#ifndef ROUTES_DEMAND_HPP_
-#define ROUTES_DEMAND_HPP_
-
+#ifndef ROUTES_DEMAND_HPP
+#define ROUTES_DEMAND_HPP
 
 #include <string>
 
@@ -87,13 +86,14 @@ struct Core_init_t  {
     Query *remote_control{};
 
     [[nodiscard]] [[maybe_unused]] inline size_t size() const noexcept { return functions.size(); }
-     string execute(string _raw) {
+     string execute(string _raw, string headers) {
         remote_control = new Query();
         string response{};
         for (size_t i = 0; i < functions.size(); i++) {
             remote_control->lock();
-            remote_control->body.clearParams();
+            remote_control->body.clear_parameters();
             remote_control->body.setRawParametersData(std::move(_raw));
+            remote_control->body.setRawHeadersData(std::move(headers));
             functions[i](*remote_control);
             if(remote_control->getNext()) continue;
             else break;
@@ -130,4 +130,4 @@ struct listen_routes {
     xcallargs callbacks;
 };
 
-#endif /*ROUTES_DEMAND_HPP_*/
+#endif /*ROUTES_DEMAND_HPP */
