@@ -1,0 +1,18 @@
+{
+  "name": "neody",
+  "version": "1.0.0",
+  "description": "neody http library",
+  "scripts": {
+    "build": "make",
+    "clear": "make clean",
+    "start": "./Neody",
+    "dev": "make && ./Neody",
+    "devc": "make clean && make &&./Neody",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/scyth3-c/Magnetar-core.git"
+  },
+  "private": true
+}

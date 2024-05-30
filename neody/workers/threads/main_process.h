@@ -2,8 +2,8 @@
 // Created by scythe on 5/07/23.
 //
 
-#ifndef DEPLOYOCEAN_MAIN_PROCESS_H
-#define DEPLOYOCEAN_MAIN_PROCESS_H
+#ifndef MAIN_PROCESS_H
+#define MAIN_PROCESS_H
 
 #include <stdexcept>
 #include <iostream>
@@ -17,6 +17,10 @@
 
 #include "../../utils/enums.h"
 #include "../../processing/parameters/parameter_proccess.h"
+
+#include "../../http/routes/routes.hpp"
+#include "../../http/request/request.hpp"
+
 
 constexpr int BUFFER = enums::neo::eSize::BUFFER;
 constexpr int SESSION = enums::neo::eSize::SESSION;
@@ -150,16 +154,15 @@ namespace workers {
 
                                             if (it.route.getType() == actual_route.first && it.route.getName() == actual_route.second) {
 
-                                                if (actual_route.first == GET_TYPE){
-                                                    parameters = qProcess->route_refactor_params_get(socket_response);
-                                                } else{
-                                                    parameters = qProcess->route_refactor_params(socket_response);
-                                                }
-                                                send_target = it.callbacks.execute(parameters);
+                                                parameters = actual_route.first == GET_TYPE ?
+                                                     qProcess->route_refactor_params_get(socket_response)
+                                                    : qProcess->route_refactor_params(socket_response);
+
+                                                send_target = it.callbacks.execute(parameters,
+                                                qProcess->headers_from(socket_response)
+                                                );
                                                 cantget = false;
-
                                                 break;
-
                                             }
                                         }
 
@@ -186,4 +189,4 @@ namespace workers {
 }
 
 
-#endif //DEPLOYOCEAN_MAIN_PROCESS_H
+#endif //MAIN_PROCESS_H

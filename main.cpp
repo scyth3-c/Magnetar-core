@@ -7,7 +7,7 @@ int main() {
 
 
     router.get("/",{ [&](Query &http) {
-        http.readFile("./views/index.html", "text/html");
+        http.readFile("./views/base.html", "text/html");
     }});
 
 
@@ -15,16 +15,20 @@ int main() {
         http.readFileX("./views/cpp.html", "text/html");
     }});
 
+
     router.post("/headers",  {[&](Query &http) {
-        auto list = http.body.getParams();
+        auto list = http.body.getParameters();
         http.send(list.get("kaio").value);
     }});
 
+    
     router.get("/headers",  {[&](Query &http) {
-        auto list = http.body.getParams();
-        http.send(list.get("kaio").value);
-    }});
 
+        auto list = http.body.getHeaders();
+
+        http.send(list.get("Postman-Token").value);
+
+    }});
 
 
     std::string id = "22";
@@ -34,7 +38,7 @@ int main() {
            JSON_s error = {"error", "no id"};
            JSON_s invalid = {"error", "invalid"};
 
-           auto params = http.body.getParams();
+           auto params = http.body.getParameters();
 
            if (!params.exist("id"))
                http.json(error());
@@ -48,7 +52,7 @@ int main() {
            },
         [&](Query &http) {
 
-             auto params = http.body.getParams();
+             auto params = http.body.getParameters();
              auto nombre = params.get("nombre").value;
 
              if (nombre.length() > 5)

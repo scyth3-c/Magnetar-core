@@ -18,12 +18,11 @@ constexpr const char* X_WWW_FORM = "application/x-www-form-urlencoded";
 constexpr const char* PLAIN_TEXT = "text/plain";
 
 #define STR_ERR "-1"
-
 #include <algorithm>
 #include <memory>
 #include <string>
 
-#include "../../HTTP/request/request.hpp"
+#include "../../http/request/request.hpp"
 
 using std::string;
 using std::make_shared;
@@ -36,12 +35,13 @@ public:
     HTTP_QUERY();
     ~HTTP_QUERY();
     
-   [[nodiscard]] string route_refactor_params(string) const;
-   [[nodiscard]] string route_refactor_params_get(string) const;
-   [[nodiscard]] string get_params(string &, bool &) const;
+   [[nodiscard]] string route_refactor_params(const string&) const;
+   [[nodiscard]] string route_refactor_params_get(const string&) const;
+   [[nodiscard]] static string headers_from(const string&);
+   [[nodiscard]] string get_params(const string &, bool &) const;
    [[nodiscard]] static string x_www_form_urlencoded(const string &, const string& type = "");
    [[nodiscard]] static string findContenType(string);
-   [[nodiscard]] string selectPerType(string &,const string&, bool&) const;
+   [[nodiscard]] string selectPerType(const string &,const string&, bool&) const;
    [[nodiscard]] static std::pair<string, string> route_refactor(string);
    [[nodiscard]] static string trim(string);
 };
