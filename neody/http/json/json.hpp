@@ -16,9 +16,9 @@ struct JSON_t {
     [[nodiscard]] string json() const {
         string response{"{ "};
 
-        constexpr char comilla = char(34);
-        constexpr char puntos = char(58);
-        constexpr char coma_simple = char(44);
+        constexpr char comilla = 34;
+        constexpr char puntos = 58;
+        constexpr char coma_simple =44;
 
         for (size_t i = 0; i < body.size(); i+=2) {
             response +=  comilla + body[i] + comilla;
@@ -27,7 +27,7 @@ struct JSON_t {
             response +=  coma_simple;
         }
         const size_t size = response.length();
-        response[size-1] = char(32);
+        response[size-1] = 32;
         response += " }";
 
         for (size_t i = 0; i < response.length(); i++)

@@ -16,6 +16,8 @@ constexpr const char* PURGE_TYPE = "PURGE";
 
 constexpr const char* X_WWW_FORM = "application/x-www-form-urlencoded";
 constexpr const char* PLAIN_TEXT = "text/plain";
+constexpr const char* RAW_ERROR = "data=null";
+constexpr const char* RAW_TARGET = "data=";
 
 #define STR_ERR "-1"
 #include <algorithm>
@@ -35,13 +37,14 @@ public:
     HTTP_QUERY();
     ~HTTP_QUERY();
     
-   [[nodiscard]] string route_refactor_params(const string&) const;
-   [[nodiscard]] string route_refactor_params_get(const string&) const;
+   [[nodiscard]] static string route_refactor_params(const string&);
+   [[nodiscard]] static string route_refactor_params_get(const string&);
    [[nodiscard]] static string headers_from(const string&);
-   [[nodiscard]] string get_params(const string &, bool &) const;
-   [[nodiscard]] static string x_www_form_urlencoded(const string &, const string& type = "");
-   [[nodiscard]] static string findContenType(string);
-   [[nodiscard]] string selectPerType(const string &,const string&, bool&) const;
+   [[nodiscard]] static string get_params(const string &);
+   [[nodiscard]] static string x_www_form_urlencoded(const string &);
+   [[nodiscard]] static string raw_form_encoded(const string &);
+   [[nodiscard]] static string findContenType(const string&);
+   [[nodiscard]] static string selectPerType(const string &,const string&, bool&);
    [[nodiscard]] static std::pair<string, string> route_refactor(string);
    [[nodiscard]] static string trim(string);
 };

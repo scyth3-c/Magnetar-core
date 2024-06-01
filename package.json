@@ -6,8 +6,9 @@
     "build": "make",
     "clear": "make clean",
     "start": "./Neody",
-    "dev": "make && ./Neody",
-    "devc": "make clean && make &&./Neody",
+    "sanetize": "make DEV_EXTRA=\"-Wall -Wextra -pedantic -Wpedantic -g -fsanitize=address\" ",
+    "dev": "make DEV_EXTRA=\"-Wall -Wextra -pedantic -Wpedantic -Wnon-virtual-dtor -Wnull-dereference -Wstrict-overflow=5 -Wmissing-include-dirs -Wstrict-aliasing=2\" && ./Neody",
+    "devc": "make clean && make DEV_EXTRA=\"-Wall -Wextra -pedantic -Wpedantic -Wnon-virtual-dtor -Wnull-dereference -Wstrict-overflow=5  -Wmissing-include-dirs -Wstrict-aliasing=2 \" && ./Neody",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

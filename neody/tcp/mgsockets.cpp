@@ -136,20 +136,17 @@ void Server::getResponseProcessing() {
         vector<char> buffer;
         buffer.resize(*buffer_size);
 
-        size_t totalbyes = read(*socket_id, buffer.data(), *buffer_size);
+        auto totalbyes = read(*socket_id, buffer.data(), *buffer_size);
 
-        for (int it = 0; it <= totalbyes; it++) {
-            if (int(buffer[it]) == 0)
+        for (auto it = 0; it <= totalbyes; it++) {
+            if (buffer[it] == 0)
                 break;
-            if(int(buffer[it]) == UnCATCH_ERROR_CH)
+            if(buffer[it] == UnCATCH_ERROR_CH)
                 continue;
-            if (int(buffer[it]) == 10)
+            if (buffer[it] == 10)
                 continue;
             base += buffer[it];
         }
-
-        std::cout <<  "base: "<< base << std::endl;
-
         if(base.empty()) throw std::range_error("error, el mensaje no se recibio");
         buffereOd_data = make_shared<string>(base);
     }

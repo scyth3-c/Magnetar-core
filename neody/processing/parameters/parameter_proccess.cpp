@@ -4,45 +4,26 @@
 HTTP_QUERY::HTTP_QUERY() = default;
 HTTP_QUERY::~HTTP_QUERY() = default;
 
-string HTTP_QUERY::x_www_form_urlencoded(const string &target, const string& type){
-    string params{};
-    for (size_t ti = target.length() - 0x1; ti > 0x0; ti--){
-        if (target[ti] == ' ' || target[ti] == char(13))
-            break;
-        params.push_back(target[ti]);
-    }
-    std::reverse(params.begin(), params.end());
-    return type + params;
+
+string HTTP_QUERY::selectPerType(const string &target, const string &conten_type, bool &init) {
+    if (target.empty())
+        init = false;
+    return conten_type == X_WWW_FORM ? x_www_form_urlencoded(target) :  raw_form_encoded(target);
 }
 
-string HTTP_QUERY::selectPerType(const string &target, const string &conten_type, bool &init) const {
-    if (conten_type == X_WWW_FORM) {
-        init = true;
-        return x_www_form_urlencoded(target);
-    }
-    if(conten_type == PLAIN_TEXT) {
-        init = true;
-        return x_www_form_urlencoded(target, "data=");
-    }
-    return get_params(target, init);
-}
-
-string HTTP_QUERY::route_refactor_params(const string& _target) const {
+string HTTP_QUERY::route_refactor_params(const string& _target)  {
 
     const string content_type = findContenType(_target);
-    const string content_type_value = trim(content_type);
-
     if(content_type != STR_ERR) {
-        bool init = false;
-        string encoded = selectPerType(_target, content_type_value , init);
+        bool init = true;
+        string encoded = selectPerType(_target, content_type , init);
         return init ? encoded : NOT_PARAMS;
     }
         return NOT_PARAMS;
 }
 
-string HTTP_QUERY::route_refactor_params_get(const string& rawresponse) const {
-    bool init = false;
-    return get_params(rawresponse, init);
+string HTTP_QUERY::route_refactor_params_get(const string& rawresponse) {
+    return get_params(rawresponse);
 }
 
 string HTTP_QUERY::headers_from(const string& response)  {
@@ -86,43 +67,62 @@ std::pair<string, string> HTTP_QUERY::route_refactor(string target){
     return route;
 }
 
-
-string HTTP_QUERY::findContenType(string text){
-    if (text.empty())  { return STR_ERR; }
-
-    const std::string target = "Content-Type: ";
-
-    std::string content_type;
-    size_t index = text.find(target);
-
-    if (index != std::string::npos) {
-        index += target.length()  - 1;
-        while (text[index] != char(0xd)) {
-            content_type.push_back(text[index]);
-            index++;
-        }
-        return content_type;
-    } else {
-        return STR_ERR;
+string HTTP_QUERY::x_www_form_urlencoded(const string &target){
+    string params{};
+    for (size_t ti = target.length() - 0x1; ti > 0x0; ti--){
+        if (target[ti] == ' ' || target[ti] == 13)
+            break;
+        params.push_back(target[ti]);
     }
+    std::reverse(params.begin(), params.end());
+    return params;
+}
+
+string HTTP_QUERY::raw_form_encoded(const string &target) {
+    const auto spacepos = target.find("\n\r");
+    string body = RAW_TARGET;
+    if (spacepos == string::npos) {
+        return RAW_ERROR;
+    }
+    string chunk = target.substr(spacepos + 3);
+    if(!chunk.empty()) {
+        body.append(chunk);
+        return body;
+    }
+    return RAW_ERROR;
 }
 
 
-string HTTP_QUERY::get_params(const string &target, bool &init) const{
-    string params{};
-    for (size_t ui = 3; ui < target.size(); ui++){
-        if (init){
-            if (target[ui] == 'H' || target[ui] == ' ')
-                break;
-            params.push_back(target[ui]);
-        }
-        else if (target[ui] == '?' && ui <= max_iterator){
-            init = true;
-        }
+string HTTP_QUERY::findContenType(const string &text) {
+    if (text.empty())  { return STR_ERR; }
+
+    std::string target = "Content-Type: ";
+
+    const size_t ctpos = text.find(target);
+    const size_t splpos = text.find (10, ctpos+target.length());
+
+    if (ctpos == string::npos || splpos == string::npos) {
+        return STR_ERR;
     }
-    if (params.empty() || params.length() <= 1 ){
+    size_t i = ctpos + target.length();
+    target.clear();
+    for (; i<=splpos; i++)  {
+        target.push_back(text.at(i));
+    }
+    return trim(target);
+}
+
+
+string HTTP_QUERY::get_params(const string &target){
+    const auto start = target.find(63);
+    const size_t end = target.find(32, start);
+
+    if(start == string::npos || end == string::npos)
         return NOT_PARAMS;
-    }
+
+    string params = target.substr(start+1, end);
+    if(params.empty())
+        return  NOT_PARAMS;
     return params;
 }
 
