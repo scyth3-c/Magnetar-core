@@ -132,13 +132,14 @@ void Neody<T>::listen() {
 
 template <class T>
 int Neody<T>::setPort(uint16_t _port) noexcept {
-    if (_port >= enums::neo::eSize::MIN_PORT)
+    if (_port >= enums::neo::eSize::MIN_PORT) {
         PORT = _port;
-        if(tcpControl != nullptr)
+        if(tcpControl != nullptr) {
             tcpControl->setPort(PORT);
-    else
-        return enums::neo::eReturn::ERROR;
-    return enums::neo::eReturn::OK;
+            return enums::neo::eReturn::OK;
+        }
+    }
+    return enums::neo::eReturn::ERROR;
 }
 
 template<class T>

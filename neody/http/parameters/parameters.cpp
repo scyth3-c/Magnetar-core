@@ -31,8 +31,9 @@ void Param_t::setConten(vector<std::pair<string,string>> &list) {
 
 param_box Param_t::get(const string& param){
     std::vector<std::pair<string,string>>::iterator item = std::find_if(_list.begin(), _list.end(), [&](std::pair<string,string> &iter) {
-        return (iter.first == param);
-    });
+           return (iter.first == param);
+       });
+
     if(item != _list.end()) {
         return {item->first, item->second};
     }

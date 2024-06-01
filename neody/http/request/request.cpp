@@ -23,8 +23,12 @@ void Request::setRawParametersData(string &&_raw) {
     if(midd == string::npos || end == string::npos)
       break;
 
-    string chunk = _raw.substr(0,end);
-    _parameters.emplace_back(std::make_pair(chunk.substr(0, midd), chunk.substr(midd+1, end)));
+    string chunk = _raw.substr(0,end),
+    first = chunk.substr(0, midd), name;
+
+    std::copy_if(first.begin(), first.end(), std::back_inserter(name), [](unsigned char c) { return std::isprint(c); });
+
+    _parameters.emplace_back(name, chunk.substr(midd+1, end));
     _raw.erase(0, end+1);
   }
 }

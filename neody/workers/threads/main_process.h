@@ -49,12 +49,12 @@ namespace workers {
         connection(conn),
         macaco(_macaco),
         epoll_fd(epoll_create1(0)),
+        next_register(enums::neo::eSize::DEF_REG),
+        events(std::vector<epoll_event>(INIT_MAX_EVENTS)),
+        routes(_routes),
         workers_base(_workers_base ),
-        conditions_base(_conditions_base),
-        routes(_routes)
+        conditions_base(_conditions_base)
         {
-             next_register = enums::neo::eSize::DEF_REG;
-             events = std::vector<epoll_event>(INIT_MAX_EVENTS);
         }
 
         inline  auto getMainProcess(std::shared_ptr<HTTP_QUERY> &qProcess){
@@ -63,6 +63,7 @@ namespace workers {
                 // creacion del socket
                 connection->on();
                 int file_descriptor = connection->getDescription();
+                auto nvalue = static_cast<socklen_t>(-1);
 
                 if(Server::setNonblocking(file_descriptor) == MG_ERROR){
                     close(file_descriptor);
@@ -97,7 +98,7 @@ namespace workers {
                                 sockaddr_in client_addr;
                                 socklen_t  client_adrr_len = sizeof(client_addr);
                                 int client_file_descriptor = accept(file_descriptor, reinterpret_cast<sockaddr*>(&client_addr), &client_adrr_len);
-                                if(client_adrr_len == -1) {
+                                if(client_adrr_len == nvalue) {
                                     continue;
                                 }
                                 Server::setNonblocking(client_file_descriptor);
@@ -158,6 +159,7 @@ namespace workers {
                                                      qProcess->route_refactor_params_get(socket_response)
                                                     : qProcess->route_refactor_params(socket_response);
 
+                                                std::cout << parameters<< std::endl;
                                                 send_target = it.callbacks.execute(parameters,
                                                 qProcess->headers_from(socket_response)
                                                 );
