@@ -7,56 +7,58 @@ int main() {
     router.setPort(8080);
 
 
-    /* EXAMPLES */
+    /****** EXAMPLES *******/
 
-    // root
+    /***  root  ***/
     router.get("/",{ [&](Query &http) {
         http.readFile("./views/base.html", "text/html");
     }});
 
 
 
-    // cpp render in html
+
+    /*** cpp render in html ***/
     router.get("/cpp",{ [&](Query &http) {
         http.readFileX("./views/cpp.html", "text/html");
     }});
 
 
-    // request parameters get
+
+    /*** request parameters get ***/
     router.get("/parameters",  {[&](Query &http) {
         auto list = http.body.getParameters();
         http.send(list.get("kaio").value);
     }});
 
 
-    // request parameters x-www-form-urlencoded
+
+    /*** request parameters x-www-form-urlencoded ***/
     router.post("/parameters",  {[&](Query &http) {
         auto list = http.body.getParameters();
         http.send(list.get("kaio").value);
     }});
 
 
-    // request parameters text/plain, application/json and etc.
 
+    /*** request parameters text/plain, application/json and etc. **/
     router.post("/parameters/plain",  {[&](Query &http) {
+
         auto list = http.body.getParameters();
         auto plain = list.get("data"); // 'data' for a general data
-
     http.send(plain.value);
 }});
 
 
 
 
-    //request headers
+    /*** request headers can be GET, POST, PUT AND ETC.  ***/
     router.get("/headers",  {[&](Query &http) {
         auto list = http.body.getHeaders();
         http.send(list.get("kaio").value);
     }});
 
 
-
-    // response headers
+    /*** response headers ***/
     router.get("/headers",{ [&](Query &control) {
 
         HEADERS my_headers = {
@@ -71,8 +73,7 @@ int main() {
 
 
 
-
-    // response headers inline
+    /*** response headers inline ***/
     router.get("/headers2", {[](Query &control){
             control.setHeaders("header-1: value");
             control.send("hello world");
@@ -81,20 +82,41 @@ int main() {
 
 
 
-    // Infinite middlewares
-    // localhost:8080/verify?id=22&nombre=kevin
 
+
+    /** lock route in time and dinamic lock **/
+    router.get("/guard/time",{ [&](Query &http) {
+
+        http.guard(5); // 5 seconds, route will be available 5 seconds later
+        http.readFile("./views/base.html", "text/html");
+    }});
+
+
+    /** extra: try ?seconds=5 **/
+    router.get("/guard/time/custom",{ [&](Query &http) {
+
+        auto params = http.body.getParameters();
+        int seconds = Convert::toInt(params.get("seconds").value);
+
+        http.guard(seconds, "custom cooldown message!");
+        http.readFile("./views/base.html", "text/html");
+    }});
+
+
+
+
+
+    /*** Infinite middlewares
+     *
+     *          localhost:8080/verify?id=22&nombre=kevin
+     ****/
     const string id = "22";
     router.get("/verify",{
        [&](Query &http) {
 
-           const JSON_s error = {"error", "no id"},
-                  invalid = {"error", "invalid"};
+           const JSON_s invalid = {"error", "invalid"};
 
            auto params = http.body.getParameters();
-
-           if (!params.exist("id"))
-               http.json(error());
 
            if (params.get("id").value == id)
                http.next();
@@ -112,8 +134,8 @@ int main() {
 
 
 
-    // CALLBACKS
 
+    /*** CALLBACKS  ***/
     string data = "DATA";
     router.get("/callbacks", {[&](Query &http) {
 
@@ -127,22 +149,22 @@ int main() {
 
 
 
-    // data template rendering
-router.get("/datarender", {[&](Query &http) {
+    /*** data template rendering ***/
+    router.get("/datarender", {[&](Query &http) {
 
-  http.render("./views/template.html", [&](dataRender &Pack) {
+      http.render("./views/template.html", [&](dataRender &Pack) {
 
-            Pack("name", "kevin");
-            Pack("fruit", "oranges");
+                Pack("name", "kevin");
+                Pack("fruit", "oranges");
 
-            return Pack;
-        });
+                return Pack;
+            });
     }});
 
 
 
 
-    // compose multi-part html system
+    /*** compose multi-part html system ***/
     router.get("/compose", {[&](Query &http) {
 
         int modules_to_render = 1;
@@ -153,7 +175,7 @@ router.get("/datarender", {[&](Query &http) {
 
 
 
-    // return
+    /*** returns ***/
     router.get("/return",{
     [](Query &control) {
 
@@ -170,7 +192,7 @@ router.get("/datarender", {[&](Query &http) {
 
 
 
-    // native json system, recommended not to use
+    /*** native json system, recommended not to use ***/
     router.get("/json",{ [&](Query &control) {
 
         const JSON_s token = {
@@ -193,11 +215,6 @@ router.get("/datarender", {[&](Query &http) {
 
         control.json(dev());
     }});
-
-
-
-
-
 
 
     router.listen();

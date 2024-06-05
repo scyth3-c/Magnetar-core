@@ -1,9 +1,7 @@
 #include "parameter_proccess.h"
 
-
 HTTP_QUERY::HTTP_QUERY() = default;
 HTTP_QUERY::~HTTP_QUERY() = default;
-
 
 string HTTP_QUERY::selectPerType(const string &target, const string &conten_type, bool &init) {
     if (target.empty())
@@ -26,6 +24,7 @@ string HTTP_QUERY::route_refactor_params_get(const string& rawresponse) {
     return get_params(rawresponse);
 }
 
+
 string HTTP_QUERY::headers_from(const string& response)  {
     string encoded{};
     char fc = 0x0A;
@@ -41,14 +40,13 @@ string HTTP_QUERY::headers_from(const string& response)  {
     return encoded;
 }
 
-std::pair<string, string> HTTP_QUERY::route_refactor(string target){
+std::pair<string, string> HTTP_QUERY::route_refactor(const string& target){
     const size_t size = target.size();
     std::pair<string, string> route;
     bool init = false;
-    char space = 0x20;
 
     for (const auto &it : target){
-        if (it == space || it == '/')
+        if (it == 0x20 || it == '/')
             break;
         route.first.push_back(it);
     }
@@ -64,6 +62,8 @@ std::pair<string, string> HTTP_QUERY::route_refactor(string target){
             init = true;
         }
     }
+    if(route.second.back() == '/' && route.second.length() > 1)
+        route.second.pop_back();
     return route;
 }
 
@@ -115,12 +115,13 @@ string HTTP_QUERY::findContenType(const string &text) {
 
 string HTTP_QUERY::get_params(const string &target){
     const auto start = target.find(63);
-    const size_t end = target.find(32, start);
-
-    if(start == string::npos || end == string::npos)
+    const auto end = target.find(32, start);
+    if(start == string::npos)
         return NOT_PARAMS;
-
-    string params = target.substr(start+1, end);
+    string params{};
+    for(size_t it=start+1; it<end; it++) {
+        params.push_back(target.at(it));
+    }
     if(params.empty())
         return  NOT_PARAMS;
     return params;

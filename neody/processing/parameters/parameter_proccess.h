@@ -45,7 +45,7 @@ public:
    [[nodiscard]] static string raw_form_encoded(const string &);
    [[nodiscard]] static string findContenType(const string&);
    [[nodiscard]] static string selectPerType(const string &,const string&, bool&);
-   [[nodiscard]] static std::pair<string, string> route_refactor(string);
+   [[nodiscard]] static std::pair<string, string> route_refactor(const string&);
    [[nodiscard]] static string trim(string);
 };
 

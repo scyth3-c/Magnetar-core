@@ -6,7 +6,7 @@ SOURCE_DIR := .
 DIR_OBJ := .
 COMPILER := g++
 
-FLAGS = -std=c++17 -pthread $(DEV_EXTRA)
+FLAGS = -std=c++17 -pthread -O3 $(DEV_EXTRA)
 OBJ := $(SOURCES:.cpp=.o)
 DEPS := $(SOURCES:.cpp=.d)
 
@@ -27,4 +27,4 @@ install:
 	sudo apt-get install -y g++ make
 
 all:
-	echo "init"
+	$(TARGET)

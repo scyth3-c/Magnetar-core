@@ -52,26 +52,45 @@ public:
 
 
 
-
 struct utility_t {
   static string prepare_basic(const string& _txt, const string& _type, const string& headers, const string& status="200") {
     return         "HTTP/1.1 "+status+" OK\n"
                    "Server: Neody/0.5\n"
                    "Content-Type: "+_type+"\n"
+                   "Cache-Control: Expires"
                    "Content-Length: " + std::to_string(_txt.length()) + "\n"
-                   "Accept-Ranges: bytes\n" 
+                   "Accept-Ranges: bytes\n"
                     + headers +
                    "Connection: close\n"
                    "\n" +
                    _txt;
   }
-};
 
+  static string guard_route(const long seconds, string msg = "") {
+
+    const string chunk = not msg.empty() ? std::move(msg) : "wait, this route has a " +std::to_string(seconds)+ " second cooldown";
+    return prepare_basic("{\"message\":\"" +  chunk  + "\"}", "application/json", "", "401");
+  }
+
+  static int toInt(const string& data) {
+    try {
+        std::size_t pos;
+      const int result = std::stoi(data, &pos);
+      if(pos != data.size())
+        throw std::out_of_range(data);
+      return result;
+    } catch (const std::exception &e) {
+      return  0;
+    }
+  }
+
+};
 
 
 constexpr auto ERROR_GET = "HTTP/1.1 404 BAD\n"
                            "Server: Neody/0.5\n"
                            "Content-Type: application/json\n"
+                           "Cache-Control: Expires"
                            "Content-Length: 37\n"
                            "Accept-Ranges: bytes\n"
                            "Connection: close\n"

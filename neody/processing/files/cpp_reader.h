@@ -17,10 +17,15 @@ using std::shared_ptr;
 class CppReader {
 public:
     CppReader() = default;
+     static std::pair<string,string> processing(const string& path) {
 
-    static string processing(const string& path) {
+        if(!std::filesystem::exists(std::filesystem::path(path))) {
+            return {notify::noPath(path), "404"};
+        }
 
-        string nombre{},
+        try {
+
+  string nombre{},
             chunk,
             body,
             ruta{},
@@ -38,6 +43,7 @@ public:
             body += chunk;
         }
         reader.close();
+
         for (size_t iterator = 0; iterator < body.length() - 1; iterator++)
         {
             if (init)
@@ -67,45 +73,57 @@ public:
 
         std::ofstream writter;
         writter.open((ruta + CPP_).c_str());
-        
-        std::cout << std::flush;
+
         for (auto &it : code){
             writter << it;
         }
+
         writter << CODE_END;
         writter.close();
 
         command = GPP_  +
-                  ruta   + 
+                  ruta   +
                   CPP_  +
                   OUT   +
-                  ruta   + 
+                  ruta   +
                   AFTER +
-                   ruta  + 
+                   ruta  +
                    DATA +
-                   ruta  + 
+                   ruta  +
                    TXX_;
 
-        system(command.c_str());
-        reader.open(ruta + TXX_);
+        int result = system(command.c_str());
+
+            reader.open(ruta + TXX_);
         chunk = " ";
 
         while (getline(reader, chunk))
         {
             compile_container += chunk;
         }
+        if(result==-1)
+            compile_container += " -1";
 
         reader.close();
 
         for (int i = coords.first; i <= coords.second; i++){
-            body[i] = char(32);
+            body[i] = 32;
         }
+
         std::filesystem::remove(ruta);
         std::filesystem::remove(ruta + CPP_);
         std::filesystem::remove(ruta + TXX_);
+
         body.insert(coords.first, compile_container);
 
-        return body;
+        return {body, "200"};
+
+        }catch (std::exception &e) {
+
+            return {e.what(), "500"};
+
+        }
+
     }
 };
 

@@ -34,12 +34,10 @@ public:
         string body = readFile(path);
         string buffer{};
 
-        std::cout << std::flush;       
         for (size_t iterator = 0; iterator < variables.size(); iterator++) {
             buffer = body_tratament(body);
             body = buffer;
         }
-
         return body;
 }
 
