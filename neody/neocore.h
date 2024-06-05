@@ -10,11 +10,10 @@
 
 #include <thread>
 #include <memory>
-
 #include <string>
-#include <vector>
 
 using std::make_shared;
+using std::make_unique;
 using std::string;
 
 using workers::eWorkers;
@@ -23,10 +22,10 @@ using workers::wInstances;
 template <class T>
 class Neody {
 
-    ::eWorkers<T> *eWorkers = nullptr;
-    ::wInstances<T> * wInstances = nullptr;
+    shared_ptr<::eWorkers<T>> eWorkers = nullptr;
+    shared_ptr<::wInstances<T>> wInstances = nullptr;
 
-    std::vector<listen_routes> routes;
+    std::unordered_map<string, std::unique_ptr<listen_routes>> routes;
     std::shared_ptr<T> tcpControl;
     std::shared_ptr<HTTP_QUERY> qProcess = nullptr;
 
@@ -39,9 +38,8 @@ class Neody {
 public:
     [[maybe_unused]] explicit Neody(uint16_t port);
     explicit Neody();
-    ~Neody(){ delete eWorkers; }
 
-    int http_response(string, xcallargs, string optional);
+    int http_response(const string&, xcallargs, const string&);
     [[maybe_unused]] int get(const string&,const xcallargs&);
     [[maybe_unused]] int post(const string&,const xcallargs&);
     [[maybe_unused]] int put(const string&, const xcallargs&);
@@ -60,7 +58,7 @@ public:
 };
 
 template <class T>
-[[maybe_unused]] Neody<T>::Neody(uint16_t port) {
+[[maybe_unused]] Neody<T>::Neody(const uint16_t port) {
     if (port >= enums::neo::eSize::MIN_PORT) { PORT = port; }
     tcpInt();
 }
@@ -72,9 +70,9 @@ Neody<T>::Neody() {
 
 template <class T>
 
-int Neody<T>::http_response(string _xRoute, xcallargs _funcs, string optional) {
+int Neody<T>::http_response(const string &route, xcallargs _funcs,const string& type) {
     try {
-        routes.emplace_back(std::move(_xRoute), std::move(_funcs), std::move(optional));
+        routes[route + type] = make_unique<listen_routes>(route, std::move(_funcs), type);
     }
     catch (const std::exception &e) {
         std::cerr << e.what() << '\n';
@@ -84,44 +82,44 @@ int Neody<T>::http_response(string _xRoute, xcallargs _funcs, string optional) {
 }
 
 template <class T>
-[[maybe_unused]] int Neody<T>::get(const string& _xRoute,const xcallargs &_funcs){
-    return http_response(_xRoute, _funcs, GET_TYPE);
+[[maybe_unused]] int Neody<T>::get(const string& route,const xcallargs &_funcs){
+    return http_response(route, _funcs, GET_TYPE);
 }
 template <class T>
-[[maybe_unused]] int Neody<T>::post(const string& _xRoute,const xcallargs &_funcs) {
-    return http_response(_xRoute, _funcs, POST_TYPE);
+[[maybe_unused]] int Neody<T>::post(const string& route,const xcallargs &_funcs) {
+    return http_response(route, _funcs, POST_TYPE);
 }
 template <class T>
-[[maybe_unused]] int Neody<T>::put(const string& _xRoute,const xcallargs &_funcs) {
-    return http_response(_xRoute, _funcs, PUT_TYPE);
+[[maybe_unused]] int Neody<T>::put(const string& route,const xcallargs &_funcs) {
+    return http_response(route, _funcs, PUT_TYPE);
 }
 template <class T>
-[[maybe_unused]] int Neody<T>::deleteX(const string& _xRoute,const xcallargs &_funcs) {
-    return http_response(_xRoute, _funcs, DELETE_TYPE);
+[[maybe_unused]] int Neody<T>::deleteX(const string& route,const xcallargs &_funcs) {
+    return http_response(route, _funcs, DELETE_TYPE);
 }
 template <class T>
-[[maybe_unused]] int Neody<T>::patch(const string& _xRoute,const xcallargs &_funcs) {
-    return http_response(_xRoute, _funcs, PATCH_TYPE);
+[[maybe_unused]] int Neody<T>::patch(const string& route,const xcallargs &_funcs) {
+    return http_response(route, _funcs, PATCH_TYPE);
 }
 template <class T>
-[[maybe_unused]] int Neody<T>::head(const string& _xRoute, const xcallargs &_funcs) {
-    return http_response(_xRoute, _funcs, HEAD_TYPE);
+[[maybe_unused]] int Neody<T>::head(const string& route, const xcallargs &_funcs) {
+    return http_response(route, _funcs, HEAD_TYPE);
 }
 template <class T>
-[[maybe_unused]] int Neody<T>::options(const string& _xRoute, const xcallargs &_funcs) {
-    return http_response(_xRoute, _funcs, OPTIONS_TYPE);
+[[maybe_unused]] int Neody<T>::options(const string& route, const xcallargs &_funcs) {
+    return http_response(route, _funcs, OPTIONS_TYPE);
 }
 template <class T>
-[[maybe_unused]]  int Neody<T>::link(const string& _xRoute, const xcallargs &_funcs) {
-    return http_response(_xRoute, _funcs, LINK_TYPE);
+[[maybe_unused]]  int Neody<T>::link(const string& route, const xcallargs &_funcs) {
+    return http_response(route, _funcs, LINK_TYPE);
 }
 template <class T>
-[[maybe_unused]] int Neody<T>::unlink(const string& _xRoute,const xcallargs &_funcs) {
-    return http_response(_xRoute, _funcs, UNLINK_TYPE);
+[[maybe_unused]] int Neody<T>::unlink(const string& route,const xcallargs &_funcs) {
+    return http_response(route, _funcs, UNLINK_TYPE);
 }
 template <class T>
-[[maybe_unused]] int Neody<T>::purge(const string& _xRoute,const xcallargs &_funcs) {
-    return http_response(_xRoute, _funcs, PURGE_TYPE);
+[[maybe_unused]] int Neody<T>::purge(const string& route,const xcallargs &_funcs) {
+    return http_response(route, _funcs, PURGE_TYPE);
 }
 
 template <class T>
@@ -131,7 +129,7 @@ void Neody<T>::listen() {
 }
 
 template <class T>
-int Neody<T>::setPort(uint16_t _port) noexcept {
+int Neody<T>::setPort(const uint16_t _port) noexcept {
     if (_port >= enums::neo::eSize::MIN_PORT) {
         PORT = _port;
         if(tcpControl != nullptr) {
@@ -145,10 +143,9 @@ int Neody<T>::setPort(uint16_t _port) noexcept {
 template<class T>
 void Neody<T>::tcpInt() {
 
-    eWorkers = new ::eWorkers<T>();
-    wInstances = new ::wInstances<T>();
-
-    eWorkers->Main = new workers::pMain_t<T>(wInstances->workers, wInstances->conditions, tcpControl,  lock_process, routes);
+    eWorkers = make_shared<::eWorkers<T>>();
+    wInstances = make_shared<::wInstances<T>>();
+    eWorkers->Main =make_unique<workers::pMain_t<T>>(wInstances->workers, wInstances->conditions, tcpControl,  lock_process, routes);
 
     tcpControl = make_shared<T>();
     tcpControl->setBuffer(BUFFER);
@@ -157,5 +154,6 @@ void Neody<T>::tcpInt() {
 }
 
 typedef Neody<Server> Router;
+typedef utility_t Convert;
 
 #endif // NEODIMIO_HPP

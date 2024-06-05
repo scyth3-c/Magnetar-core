@@ -12,18 +12,10 @@ namespace workers {
     class eWorkers {
     public:
         eWorkers();
-        ~eWorkers();
-
-        pMain_t<Template> *Main = nullptr;
+        std::unique_ptr<pMain_t<Template>> Main = nullptr;
     };
-
     template<class Template>
     eWorkers<Template>::eWorkers() = default;
-
-    template<class Template>
-    eWorkers<Template>::~eWorkers() {
-        delete Main;
-    }
 }
 
 #endif //MAGNETAR_CORE_WORKER_CORE_H

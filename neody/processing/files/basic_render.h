@@ -2,30 +2,37 @@
 #ifndef BASIC_READER_HPP
 #define BASIC_READER_HPP
 
-#include <memory>
 #include <string>
 #include <fstream>
+#include <filesystem>
+
+#include "../../utils/notify.h"
 
 using std::string;
-using std::make_shared;
-using std::shared_ptr;
 
 class BasicRead {
-    shared_ptr<std::ifstream> reader = nullptr;
 public:
     BasicRead() = default;
 
-    static string processing(const string& path) {
-        std::ifstream reader;
-        reader.open(path);
-        string chunk;
-        string body;
-        while(getline(reader, chunk)){
-            body += chunk;
+    static std::pair<string, string> processing(const string& path) {
+        if(!std::filesystem::exists(std::filesystem::path(path))) {
+            return {notify::noPath(path), "404"};
         }
-        return body;
+        try {
+            std::ifstream reader;
+            reader.open(path);
+            string chunk;
+            string body;
+            while(getline(reader, chunk)){
+                body += chunk;
+            }
+            reader.clear();
+            reader.close();
+            return {body, "200"};
+        } catch (std::exception &e) {
+            return {e.what(), "500"};
+        }
     }
-    ~BasicRead()= default;
 };
 
 #endif // !BASIC_READER_HPP

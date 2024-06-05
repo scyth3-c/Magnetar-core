@@ -31,6 +31,7 @@ void Request::setRawParametersData(string &&_raw) {
     _parameters.emplace_back(name, chunk.substr(midd+1, end));
     _raw.erase(0, end+1);
   }
+
 }
 
 void Request::setRawHeadersData(string &&_raw){
